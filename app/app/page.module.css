@@ -1,0 +1,178 @@
+/* ---------- estilos existentes (mantive e ajustei se necessário) ---------- */
+
+.title {
+  background: linear-gradient(90deg, #462e78, #4F46E5);
+  color: #ffffff;
+  display: inline-flex;
+  padding: 8px 10px;
+  border-radius: 12px;
+  position: absolute;
+  top: 0;
+  left: 90%;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.title:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 12px #00000033;
+}
+
+/* spider — mantive e ajustei a posição para não cobrir o cartão de login */
+.simpleSpider {
+  position: absolute;
+  top: 8%;
+  left: 92%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2rem;
+  z-index: 10;
+}
+
+.spider {
+  position: relative;
+  margin-bottom: 9px;
+  line-height: 1;
+  display: inline-block;
+  animation: spiderSwing 5s ease-in-out infinite;
+}
+
+.spider::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 20px;
+  background: #000000;
+  opacity: 0.5;
+}
+
+/* animação simples */
+@keyframes spiderSwing {
+  0% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+  100% { transform: rotate(-6deg); }
+}
+
+/* ---------- layout e login card novos ---------- */
+
+.sidebarHidden {
+  display: none; /* esconde o SidebarAdmin nesta página de login */
+}
+
+/* Wrapper que centraliza o card de login */
+.loginWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* cartão do formulário */
+.loginCard {
+  width: 420px;
+  max-width: 92%;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  padding: 28px;
+  box-sizing: border-box;
+}
+
+/* breadcrumbs/subtitulo */
+.breadcrumb {
+  margin: 8px 0 18px;
+  font-size: 13px;
+  color: rgb(120,120,120);
+}
+
+/* form */
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loginForm label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* inputs */
+.input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6e6e6;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 4px 18px rgba(79,70,229,0.12);
+}
+
+/* row com espaço entre itens */
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rememberLabel {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* botão */
+.btn {
+  margin-top: 6px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(90deg, #462e78, #4F46E5);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(79,70,229,0.16);
+}
+
+/* links de rodapé */
+.footerLink {
+  font-size: 13px;
+  color: #4F46E5;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+/* mensagem de erro simples */
+.error {
+  color: #b00020;
+  font-size: 13px;
+}
+
+/* texto para criar conta */
+.signup {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+}
+
+/* ajustes responsivos mínimos */
+@media (max-width: 640px) {
+  .simpleSpider { display: none; }
+  .loginCard { padding: 20px; }
+}

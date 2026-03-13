@@ -1,0 +1,12 @@
+:root{
+  --bg: #ffffff;
+  --muted: #666666;
+  --field-border: #d7dde1;
+  --panel-border: #e3e6ea;
+  --accent: #17a2b8;
+  --card-grad-start: #e9f1f7;
+  --card-grad-end: #dfeef8;
+  --text-strong: #2d3b45;
+  --text-muted: #7a8a95;
+  --sidebar-width: 260px;
+}

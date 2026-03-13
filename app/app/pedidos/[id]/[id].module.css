@@ -1,0 +1,150 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  background: #f6f7fb;
+}
+
+/* SIDEBAR (inalterada) */
+
+.sidebar {
+  width: 250px;
+  background: #111;
+  color: white;
+}
+
+/* CONTEÚDO */
+
+.content {
+  flex: 1;
+  padding: 40px;
+  max-width: 1100px;
+}
+
+/* HEADER */
+
+.header {
+  margin-bottom: 30px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #8a8a8a;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 28px;
+  margin-top: 4px;
+  color: #1b1b1b;
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  color: #0b0b0b;
+  font-size: 14px;
+}
+
+/* CARDS */
+
+.card {
+   background: linear-gradient(180deg,#e6eef7 0%,#d5e6f4 100%);
+  border-radius: 28px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 28px;
+  min-height: 1px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 6px 18px rgba(15,46,70,0.04);
+}
+
+/* GRID DE INFORMAÇÕES */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 12px;
+  color: #161616;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+}
+
+/* TABELA */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 13px;
+  color: #000000;
+  padding: 12px;
+  border-bottom: 1px solid #000000;
+  font-weight: 500;
+}
+
+.table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #efefef;
+  font-size: 15px;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* BOTÕES */
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btnSecondary {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #7b7b7b;
+  text-decoration: none;
+  color: #000000;
+  font-size: 14px;
+  transition: background .2s ease;
+}
+
+.btnSecondary:hover {
+  background: #a5a5a5;
+}
+
+.btnDanger {
+  margin-top: 16px;
+  background: #c62828;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btnDanger:hover {
+  background: #b71c1c;
+}

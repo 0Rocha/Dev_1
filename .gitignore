@@ -1,0 +1,14 @@
+# Variáveis de ambiente (nunca commitar)
+.env
+.env.*
+!.env.example
+node_modules
+.next
+.env
+.env*.local
+
+# OS / IDE
+.DS_Store
+.idea
+*.swp
+*.swo
