@@ -18,20 +18,39 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    // Validação simples (usuário + senha)
     if (!username.trim() || !password) {
       setError("Preencha usuário e senha.");
       return;
     }
 
-    // Exemplo de chamada à API: envie { username, password } em vez de email
-    // fetch('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ username, password }) })
-    // Para demo, redireciono diretamente (substitua pela sua lógica real)
-    router.push("/camisas");
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Erro ao fazer login.");
+        return;
+      }
+
+      router.push("/pedidos");
+    } catch (err) {
+      console.error(err);
+      setError("Não foi possível conectar ao servidor.");
+    }
   }
 
   return (
@@ -52,13 +71,17 @@ export default function LoginPage() {
         <div className={styles.loginCard} role="main" aria-labelledby="loginTitle">
           <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <FontAwesomeIcon icon={faUserLock} size="lg" />
-            <h1 id="loginTitle" style={{ margin: 0 }}>Entrar</h1>
+            <h1 id="loginTitle" style={{ margin: 0 }}>
+              Entrar
+            </h1>
           </header>
 
           <p className={styles.breadcrumb}>Faça login para continuar</p>
 
           <form onSubmit={handleSubmit} className={styles.loginForm} noValidate>
-            <label htmlFor="username" className={styles.formLabel}>Usuário</label>
+            <label htmlFor="username" className={styles.formLabel}>
+              Usuário
+            </label>
             <input
               id="username"
               name="username"
@@ -71,7 +94,9 @@ export default function LoginPage() {
               aria-required="true"
             />
 
-            <label htmlFor="password" className={styles.formLabel}>Senha</label>
+            <label htmlFor="password" className={styles.formLabel}>
+              Senha
+            </label>
             <input
               id="password"
               name="password"
