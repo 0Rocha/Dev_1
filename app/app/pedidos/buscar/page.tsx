@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../../components/SidebarAdmin';
 import styles from '../pedidos.module.css';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClockRotateLeft, faEdit, } from '@fortawesome/free-solid-svg-icons';
 const fn = Funnel_Sans({ subsets: ['latin'], weight: '400' });
 
 type Order = {
@@ -25,6 +26,7 @@ export default function BuscarPage() {
   const [busca, setBusca] = useState('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tipoBusca, setTipoBusca] = useState<'id' | 'login' | 'usuario'>('id');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [importLoading, setImportLoading] = useState(false);
@@ -65,29 +67,26 @@ export default function BuscarPage() {
     };
   }, []);
 
-  const resultados = useMemo(() => {
-    const q = (busca || '').trim().toLowerCase();
-    if (!q) return [];
+ const resultados = useMemo(() => {
+  const q = (busca || '').trim().toLowerCase();
+  if (!q) return [];
 
-    const onlyDigits = /^\d+$/.test(q);
-    const maybeNumber = onlyDigits ? Number(q) : NaN;
+  return orders.filter((o) => {
+    if (tipoBusca === 'id') {
+      return String(o.id ?? '').toLowerCase().includes(q);
+    }
 
-    return orders.filter((o) => {
-      if (!isNaN(maybeNumber) && o.id === maybeNumber) return true;
+    if (tipoBusca === 'login') {
+      return String(o.usuario ?? '').toLowerCase().includes(q);
+    }
 
-      const rast = (o.rastreio || '').toLowerCase();
-      const usu = (o.usuario || '').toLowerCase();
-      const nome = (o.nome || '').toLowerCase();
-      const idStr = String(o.id || '').toLowerCase();
+    if (tipoBusca === 'usuario') {
+      return String(o.nome ?? '').toLowerCase().includes(q);
+    }
 
-      return (
-        rast.includes(q) ||
-        usu.includes(q) ||
-        nome.includes(q) ||
-        idStr.includes(q)
-      );
-    });
-  }, [busca, orders]);
+    return false;
+  });
+}, [busca, orders, tipoBusca]);
 
   const handleFileClick = () => {
     setImportMessage(null);
@@ -125,16 +124,28 @@ export default function BuscarPage() {
         const errMsg = data?.error ?? `Erro na importação (status ${res.status})`;
         setImportError(String(errMsg));
       } else {
-        setImportMessage('Importação concluída com sucesso.');
+        const importados = Number(data?.importados ?? 0);
+        const ignorados = Number(data?.ignorados ?? 0);
+        const total = Number(data?.total ?? 0);
 
-        try {
-          const r2 = await fetch('/api/pedidos');
-          if (r2.ok) {
-            const newData = await r2.json();
-            setOrders(Array.isArray(newData) ? newData : []);
+        if (importados === 0) {
+          setImportError(
+            `Nenhum pedido foi importado. Total lido: ${total}. Ignorados: ${ignorados}.`
+          );
+        } else {
+          setImportMessage(
+            `Importação concluída. Importados: ${importados}. Ignorados: ${ignorados}. Total lido: ${total}.`
+          );
+
+          try {
+            const r2 = await fetch('/api/pedidos');
+            if (r2.ok) {
+              const newData = await r2.json();
+              setOrders(Array.isArray(newData) ? newData : []);
+            }
+          } catch (err) {
+            console.warn('Falha ao recarregar pedidos após importação:', err);
           }
-        } catch (err) {
-          console.warn('Falha ao recarregar pedidos após importação:', err);
         }
       }
     } catch (err: any) {
@@ -171,20 +182,56 @@ export default function BuscarPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <input
+                <input
                 type="text"
-                placeholder="Digite ID, rastreio, usuário ou nome"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por ID"
+                value={tipoBusca === 'id' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('id');
+                  setBusca(e.target.value);
+                }}
                 style={{
                   padding: 8,
                   borderRadius: 6,
-                  border: '1px solid #ccc',
-                  width: 340,
+                  border: tipoBusca === 'id' ? '1px solid #4F46E5' : '1px solid #ccc',
+                  width: 180,
                 }}
-                aria-label="Buscar camisas "
-              />
+                aria-label="Buscar por ID"
+                />
 
+                <input
+                type="text"
+                placeholder="Buscar por login"
+                value={tipoBusca === 'login' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('login');
+                  setBusca(e.target.value);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 6,
+                  border: tipoBusca === 'login' ? '1px solid #4F46E5' : '1px solid #ccc',
+                  width: 180,
+                }}
+                aria-label="Buscar por login"
+                />
+
+                <input
+                type="text"
+                placeholder="Buscar por usuário"
+                value={tipoBusca === 'usuario' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('usuario');
+                  setBusca(e.target.value);
+                }}
+                style={{
+                  padding: 8,
+                  borderRadius: 6,
+                  border: tipoBusca === 'usuario' ? '1px solid #4F46E5' : '1px solid #ccc',
+                  width: 180,
+                }}
+                aria-label="Buscar por usuário"
+                />
               <button
                 type="button"
                 onClick={handleFileClick}
@@ -272,21 +319,40 @@ export default function BuscarPage() {
                       {o.status ?? '-'}
                     </td>
                     <td>
-                      <Link
-                        href={`/pedidos/${o.id}/editar`}
-                        style={{
-                          display: 'inline-block',
-                          padding: '6px 10px',
-                          borderRadius: 6,
-                          border: '1px solid #ccc',
-                          background: '#fff',
-                          textDecoration: 'none',
-                          color: '#111',
-                          fontSize: 14,
-                        }}
-                      >
-                        Editar
-                      </Link>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <Link
+                          href={`/pedidos/${o.id}/editar`}
+                          style={{
+                            display: 'inline-block',
+                            padding: '6px 10px',
+                            borderRadius: 6,
+                            border: '1px solid #ccc',
+                            background: '#fff',
+                            textDecoration: 'none',
+                            color: '#111',
+                            fontSize: 14,
+                          }}
+                        >
+                           <FontAwesomeIcon icon={faEdit} />
+                        </Link>
+
+                        <Link
+                          href={`/pedidos/${o.id}/logs`}
+                          style={{
+                            display: 'inline-block',
+                            padding: '6px 10px',
+                            borderRadius: 6,
+                            border: '1px solid #cfe0ff',
+                            background: '#eef4ff',
+                            textDecoration: 'none',
+                            color: '#2954c8',
+                            fontSize: 14,
+                            fontWeight: 600,
+                          }}
+                        >
+                          <FontAwesomeIcon icon={faClockRotateLeft} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

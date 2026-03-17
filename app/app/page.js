@@ -18,39 +18,39 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!username.trim() || !password) {
+    const user = username.trim();
+
+    if (!user || !password) {
       setError("Preencha usuário e senha.");
       return;
     }
 
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
+    localStorage.removeItem("auth");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("auth");
+    sessionStorage.removeItem("user");
 
-      const data = await res.json();
+    if (remember) {
+      localStorage.setItem("auth", "true");
+      localStorage.setItem("user", user);
+      localStorage.setItem("usuarioLogado", user);
+    }  
+    
+      else {
+      sessionStorage.setItem("auth", "true");
+      sessionStorage.setItem("user", user);
+      localStorage.setItem("usuarioLogado", user);
 
-      if (!res.ok) {
-        setError(data.error || "Erro ao fazer login.");
-        return;
-      }
-
-      router.push("/pedidos");
-    } catch (err) {
-      console.error(err);
-      setError("Não foi possível conectar ao servidor.");
+      localStorage.removeItem("auth");
+      localStorage.removeItem("user");
+      localStorage.removeItem("usuarioLogado");
     }
+
+    router.push("/pedidos");
   }
 
   return (

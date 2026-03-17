@@ -1,5 +1,5 @@
 import { pool } from "@/lib/db";
-console.log("DATABASE_URL USADA:", process.env.DATABASE_URL);
+console.log("DATABASE_URL existe?", !!process.env.DATABASE_URL);
 
 export const runtime = "nodejs";
 

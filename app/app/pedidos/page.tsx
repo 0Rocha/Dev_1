@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../components/SidebarAdmin';
 import styles from './pedidos.module.css';
@@ -13,6 +14,7 @@ import {
   faSave,
   faTimes,
   faPlus,
+  faClockRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 
 const fn = Funnel_Sans({ subsets: ['latin'], weight: '400' });
@@ -27,7 +29,7 @@ export type Order = {
   tamanho?: string;
   endereco?: string;
   status?: string;
-  createdAt?: string;
+  created_at?: string;
 };
 
 type SortKey =
@@ -53,17 +55,48 @@ const statusOrder: Record<string, number> = {
 };
 
 export default function Pedidos() {
+  const router = useRouter();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<Partial<Order>>({});
 
-  const [sortKey, setSortKey] = useState<SortKey>('status');
+  const [sortKey, setSortKey] = useState<SortKey>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
+    const localAuth = localStorage.getItem('auth');
+    const sessionAuth = sessionStorage.getItem('auth');
+    const localUser =
+      localStorage.getItem('usuarioLogado') || localStorage.getItem('user');
+    const sessionUser =
+      sessionStorage.getItem('usuarioLogado') || sessionStorage.getItem('user');
+    
+    if (
+    (localAuth !== 'true' && sessionAuth !== 'true') ||
+    (!localUser && !sessionUser)
+  ) {
+    localStorage.removeItem('auth');
+    localStorage.removeItem('user');
+    localStorage.removeItem('usuarioLogado');
+    sessionStorage.removeItem('auth');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('usuarioLogado');
+
+    router.push('/');
+    return;
+  }
+
+    setAuthorized(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (!authorized) return;
+
     let active = true;
     const controller = new AbortController();
 
@@ -110,7 +143,7 @@ export default function Pedidos() {
       window.removeEventListener('popstate', onPop);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, []);
+  }, [authorized]);
 
   async function createOrder(payload: Partial<Order>) {
     const res = await fetch('/api/pedidos', {
@@ -126,24 +159,37 @@ export default function Pedidos() {
     return res.json();
   }
 
-  async function updateOrder(id: number, payload: Partial<Order>) {
-    const body = { id, ...payload };
+async function updateOrder(id: number, payload: Partial<Order>) {
+  const usuarioLogadoNome =
+    localStorage.getItem('usuarioLogado') ||
+    sessionStorage.getItem('usuarioLogado') ||
+    localStorage.getItem('user') ||
+    sessionStorage.getItem('user');
 
-    const res = await fetch('/api/pedidos', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => null);
-      const msg = errBody?.error || `Erro ao atualizar pedido (${res.status})`;
-      throw new Error(msg);
-    }
-
-    return res.json();
+  if (!usuarioLogadoNome) {
+    router.push('/');
+    throw new Error('Sessão inválida. Faça login novamente.');
   }
 
+  const body = {
+    ...payload,
+    usuarioLogadoNome,
+  };
+
+  const res = await fetch(`/api/pedidos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    const msg = errBody?.error || `Erro ao atualizar pedido (${res.status})`;
+    throw new Error(msg);
+  }
+
+  return res.json();
+}
   function handleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -349,7 +395,7 @@ export default function Pedidos() {
 
   const showModal = editingId !== null || isCreating;
 
-  if (!mounted) return null;
+  if (!mounted || !authorized) return null;
 
   return (
     <main className={`${fn.className} ${styles.page}`}>
@@ -456,15 +502,20 @@ export default function Pedidos() {
                     {o.status ?? '-'}
                   </td>
 
-                  <td className={styles.actionsCell}>
-                    <Link href={`/pedidos/${o.id}`} className={styles.viewBtn}>
-                      Visualizar
-                    </Link>
+                      <td className={styles.actionsCell}>
+                       <Link href={`/pedidos/${o.id}`} className={styles.viewBtn}>
+                            Visualizar
+                        </Link>
 
-                    <button className={styles.editBtn} onClick={() => edit(o.id)}>
-                      <FontAwesomeIcon icon={faEdit} />
-                    </button>
-                  </td>
+                        <Link href={`/pedidos/${o.id}/logs`} className={styles.logBtn} title="Ver histórico">
+                          <FontAwesomeIcon icon={faClockRotateLeft} />
+                                
+                          </Link>
+
+                        <button className={styles.editBtn} onClick={() => edit(o.id)} title="Editar">
+                            <FontAwesomeIcon icon={faEdit} />
+                        </button>
+                      </td>
                 </tr>
               ))}
 

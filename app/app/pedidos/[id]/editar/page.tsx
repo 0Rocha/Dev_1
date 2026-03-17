@@ -46,6 +46,30 @@ export default function EditarPedidoPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+  const localAuth = localStorage.getItem('auth');
+  const sessionAuth = sessionStorage.getItem('auth');
+
+  const localUser =
+    localStorage.getItem('usuarioLogado') || localStorage.getItem('user');
+  const sessionUser =
+    sessionStorage.getItem('usuarioLogado') || sessionStorage.getItem('user');
+
+  if (
+    (localAuth !== 'true' && sessionAuth !== 'true') ||
+    (!localUser && !sessionUser)
+  ) {
+    localStorage.removeItem('auth');
+    localStorage.removeItem('user');
+    localStorage.removeItem('usuarioLogado');
+    sessionStorage.removeItem('auth');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('usuarioLogado');
+
+    router.push('/');
+  }
+}, [router]);
+
+  useEffect(() => {
     if (!id || Number.isNaN(id)) {
       setError('ID inválido.');
       setLoading(false);
@@ -59,21 +83,15 @@ export default function EditarPedidoPage() {
       try {
         setError(null);
 
-        const res = await fetch('/api/pedidos', { signal: controller.signal });
-        if (!res.ok) {
-          throw new Error(`Erro ao carregar pedidos (${res.status})`);
-        }
+        const res = await fetch(`/api/pedidos/${id}`, { signal: controller.signal });
 
-        const data = await res.json();
-        if (!active) return;
+              if (!res.ok) {
+              const data = await res.json().catch(() => null);
+              throw new Error(data?.error ?? `Erro ao carregar pedido (${res.status})`);
+              }
 
-        const pedidos = Array.isArray(data) ? data : [];
-        const pedido = pedidos.find((p: Pedido) => Number(p.id) === id);
-
-        if (!pedido) {
-          setError('Pedido não encontrado.');
-          return;
-        }
+              const pedido = await res.json();
+              if (!active) return;
 
         setForm({
           id: pedido.id,
@@ -114,39 +132,62 @@ export default function EditarPedidoPage() {
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    setSaving(true);
-    setMessage(null);
-    setError(null);
+  setSaving(true);
+  setMessage(null);
+  setError(null);
 
-    try {
-      const res = await fetch('/api/pedidos', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
+  try {
+    const usuarioLogadoNome =
+      localStorage.getItem('usuarioLogado') ||
+      sessionStorage.getItem('usuarioLogado') ||
+      localStorage.getItem('user') ||
+      sessionStorage.getItem('user');
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error ?? `Erro ao salvar (${res.status})`);
-      }
-
-      setMessage('Pedido atualizado com sucesso.');
-
-      setTimeout(() => {
-        router.push('/pedidos/buscar');
-      }, 800);
-    } catch (err: any) {
-      console.error('Erro ao salvar pedido:', err);
-      setError(err?.message ?? 'Erro ao salvar pedido.');
-    } finally {
-      setSaving(false);
+    if (!usuarioLogadoNome) {
+      router.push('/');
+      throw new Error('Sessão inválida. Faça login novamente.');
     }
+
+    const payload = {
+      rastreio: form.rastreio ?? '',
+      usuario: form.usuario ?? '',
+      nome: form.nome ?? '',
+      cpf: form.cpf ?? '',
+      telefone: form.telefone ?? '',
+      tamanho: form.tamanho ?? '',
+      endereco: form.endereco ?? '',
+      status: form.status ?? '',
+      usuarioLogadoNome,
+    };
+
+    const res = await fetch(`/api/pedidos/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      throw new Error(data?.error ?? `Erro ao salvar (${res.status})`);
+    }
+
+    setMessage('Pedido atualizado com sucesso.');
+
+    setTimeout(() => {
+      router.push('/pedidos/buscar');
+    }, 800);
+  } catch (err: any) {
+    console.error('Erro ao salvar pedido:', err);
+    setError(err?.message ?? 'Erro ao salvar pedido.');
+  } finally {
+    setSaving(false);
   }
+}
 
   async function handleDelete() {
     const confirmed = window.confirm(
@@ -313,10 +354,10 @@ export default function EditarPedidoPage() {
                   onChange={handleChange}
                   style={inputStyle}
                 >
-                  <option value="">Selecione</option>
-                  <option value="pendente">Pendente</option>
-                  <option value="enviado">Enviado</option>
-                  <option value="entregue">Entregue</option>
+                  
+                  <option value="Pendente">Pendente</option>
+                  <option value="Enviado">Enviado</option>
+                  
                 </select>
               </div>
 

@@ -1,150 +1,174 @@
 .page {
-  display: flex;
   min-height: 100vh;
-  background: #f6f7fb;
+  background: #f5f7fb;
+  padding: 32px;
 }
-
-/* SIDEBAR (inalterada) */
-
-.sidebar {
-  width: 250px;
-  background: #111;
-  color: white;
-}
-
-/* CONTEÚDO */
 
 .content {
-  flex: 1;
-  padding: 40px;
   max-width: 1100px;
+  margin: 0 auto;
 }
 
-/* HEADER */
-
-.header {
-  margin-bottom: 30px;
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .breadcrumb {
-  font-size: 14px;
-  color: #8a8a8a;
-  margin-bottom: 6px;
+  margin: 0 0 8px;
+  color: #7b8794;
+  font-size: 13px;
 }
 
 .title {
-  font-size: 28px;
-  margin-top: 4px;
-  color: #1b1b1b;
-  letter-spacing: 1px;
+  margin: 0;
+  font-size: 30px;
+  color: #18212f;
 }
 
-.subtitle {
-  color: #0b0b0b;
-  font-size: 14px;
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: #1f2937;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-/* CARDS */
-
-.card {
-   background: linear-gradient(180deg,#e6eef7 0%,#d5e6f4 100%);
-  border-radius: 28px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 28px;
-  min-height: 1px;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 6px 18px rgba(15,46,70,0.04);
+.emptyState {
+  background: #fff;
+  border: 1px solid #e5eaf2;
+  border-radius: 18px;
+  padding: 28px;
+  color: #617085;
 }
 
-/* GRID DE INFORMAÇÕES */
-
-.grid {
+.timeline {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 20px;
 }
 
-.field {
+.card {
+  background: #fff;
+  border: 1px solid #e5eaf2;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.cardHeader {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  border-bottom: 1px solid #edf1f7;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
 }
 
-.label {
-  font-size: 12px;
-  color: #161616;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: .5px;
+.cardTitle {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #18212f;
 }
 
-.value {
-  font-size: 16px;
-  font-weight: 500;
-  color: #000000;
-}
-
-/* TABELA */
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.table th {
-  text-align: left;
-  font-size: 13px;
-  color: #000000;
-  padding: 12px;
-  border-bottom: 1px solid #000000;
-  font-weight: 500;
-}
-
-.table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid #efefef;
-  font-size: 15px;
-}
-
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-
-/* BOTÕES */
-
-.actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.btnSecondary {
-  padding: 10px 16px;
-  border-radius: 8px;
-  background: #7b7b7b;
-  text-decoration: none;
-  color: #000000;
+.cardMeta {
+  margin: 0;
+  color: #66758a;
   font-size: 14px;
-  transition: background .2s ease;
 }
 
-.btnSecondary:hover {
-  background: #a5a5a5;
+.cardDate {
+  white-space: nowrap;
+  background: #eef4ff;
+  color: #3157c8;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.btnDanger {
-  margin-top: 16px;
-  background: #c62828;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
+.cardBody {
+  display: grid;
+  gap: 14px;
 }
 
-.btnDanger:hover {
-  background: #b71c1c;
+.diffRow {
+  border: 1px solid #edf1f7;
+  border-radius: 16px;
+  padding: 14px;
+  background: #fbfcfe;
+}
+
+.diffChanged {
+  border-color: #d9e7ff;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.diffLabel {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1d2736;
+  margin-bottom: 10px;
+}
+
+.diffValues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.diffBox {
+  background: #fff;
+  border: 1px solid #e8edf5;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.diffBox p {
+  margin: 8px 0 0;
+  color: #435166;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diffTagOld,
+.diffTagNew {
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+
+.diffTagOld {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.diffTagNew {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 20px;
+  }
+
+  .diffValues {
+    grid-template-columns: 1fr;
+  }
+
+  .cardHeader,
+  .topBar {
+    flex-direction: column;
+  }
 }
