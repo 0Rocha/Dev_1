@@ -129,7 +129,7 @@ export async function PUT(
     console.error("PUT /api/pedidos/[id]:", err);
 
     return new Response(
-      JSON.stringify({ error: err?.message ?? "Erro ao atualizar pedido" }),
+      JSON.stringify({ error: err?.message ?? "Erro ao atualizar camisa" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },

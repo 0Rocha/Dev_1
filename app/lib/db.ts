@@ -7,11 +7,6 @@ const envUrl = process.env.DATABASE_URL;
 const fallback = 'postgresql://postgres:postgres@127.0.0.1:5433/appdb';
 const raw = envUrl ?? fallback;
 
-// máscara senha para logs (não exponha em produção)
-const maskConn = (s: string) => s.replace(/:(.*?)@/, ':****@');
-
-console.log('DATABASE_URL USADA:', envUrl ? maskConn(envUrl) : '(fallback) ' + maskConn(fallback));
-
 export const pool = new Pool({
   connectionString: raw,
   max: 10,

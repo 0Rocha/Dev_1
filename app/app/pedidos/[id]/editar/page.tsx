@@ -87,7 +87,7 @@ export default function EditarPedidoPage() {
 
               if (!res.ok) {
               const data = await res.json().catch(() => null);
-              throw new Error(data?.error ?? `Erro ao carregar pedido (${res.status})`);
+              throw new Error(data?.error ?? `Erro ao carregar camisa (${res.status})`);
               }
 
               const pedido = await res.json();
@@ -106,8 +106,8 @@ export default function EditarPedidoPage() {
         });
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
-        console.error('Erro ao carregar pedido:', err);
-        if (active) setError(err?.message ?? 'Erro ao carregar pedido.');
+        console.error('Erro ao carregar camisa:', err);
+        if (active) setError(err?.message ?? 'Erro ao carregar camisa.');
       } finally {
         if (active) setLoading(false);
       }
@@ -176,14 +176,14 @@ export default function EditarPedidoPage() {
       throw new Error(data?.error ?? `Erro ao salvar (${res.status})`);
     }
 
-    setMessage('Pedido atualizado com sucesso.');
+    setMessage('Camisa atualizada com sucesso.');
 
     setTimeout(() => {
       router.push('/pedidos/buscar');
     }, 800);
   } catch (err: any) {
-    console.error('Erro ao salvar pedido:', err);
-    setError(err?.message ?? 'Erro ao salvar pedido.');
+    console.error('Erro ao salvar camisa:', err);
+    setError(err?.message ?? 'Erro ao salvar camisa.');
   } finally {
     setSaving(false);
   }
@@ -191,7 +191,7 @@ export default function EditarPedidoPage() {
 
   async function handleDelete() {
     const confirmed = window.confirm(
-      `Tem certeza que deseja excluir o pedido #${id}?`
+      `Tem certeza que deseja excluir a camisa #${id}?`
     );
 
     if (!confirmed) return;
@@ -215,14 +215,14 @@ export default function EditarPedidoPage() {
         throw new Error(data?.error ?? `Erro ao excluir (${res.status})`);
       }
 
-      setMessage('Pedido excluído com sucesso.');
+      setMessage('Camisa excluída com sucesso.');
 
       setTimeout(() => {
         router.push('/pedidos/buscar');
       }, 600);
     } catch (err: any) {
-      console.error('Erro ao excluir pedido:', err);
-      setError(err?.message ?? 'Erro ao excluir pedido.');
+      console.error('Erro ao excluir camisa:', err);
+      setError(err?.message ?? 'Erro ao excluir camisa.');
     } finally {
       setDeleting(false);
     }
@@ -238,8 +238,8 @@ export default function EditarPedidoPage() {
         <header className={styles.header}>
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             <div>
-              <p className={styles.breadcrumb}>Pedidos / Editar</p>
-              <h1 className={styles.title}>Editar pedido #{id}</h1>
+              <p className={styles.breadcrumb}>Camisas / Editar</p>
+              <h1 className={styles.title}>Editar camisa #{id}</h1>
             </div>
 
             <div>
@@ -262,7 +262,7 @@ export default function EditarPedidoPage() {
         </header>
 
         <div style={{ marginTop: 16 }}>
-          {loading && <p>Carregando pedido...</p>}
+          {loading && <p>Carregando camisa...</p>}
           {error && <p style={{ color: 'crimson' }}>Erro: {error}</p>}
           {message && <p style={{ color: 'green' }}>{message}</p>}
         </div>

@@ -41,9 +41,9 @@ export default function CamisaPage() {
         const res = await fetch(`/api/pedidos/${encodeURIComponent(id)}`);
         if (!res.ok) {
           if (res.status === 404) {
-            throw new Error('Pedido não encontrado.');
+            throw new Error('Camisa não encontrada.');
           } else {
-            throw new Error('Erro ao buscar pedido ');
+            throw new Error('Erro ao buscar camisa ');
           }
         }
         const data = await res.json();

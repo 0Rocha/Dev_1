@@ -23,19 +23,29 @@
 /* spider — mantive e ajustei a posição para não cobrir o cartão de login */
 .simpleSpider {
   position: absolute;
-  top: 8%;
-  left: 92%;
-  transform: translate(-50%, -50%);
+  top: 24px;
+  right: 28px;
+  transform: none;
   font-size: 1.2rem;
   z-index: 10;
 }
 
 .spider {
   position: relative;
-  margin-bottom: 9px;
   line-height: 1;
   display: inline-block;
-  animation: spiderSwing 5s ease-in-out infinite;
+}
+
+.spiderLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #111827;
+  text-decoration: none;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .spider::before {
@@ -55,6 +65,19 @@
   0% { transform: rotate(-6deg); }
   50% { transform: rotate(6deg); }
   100% { transform: rotate(-6deg); }
+}
+
+@media (max-width: 720px) {
+  .simpleSpider {
+    top: 18px;
+    right: 18px;
+  }
+
+  .spiderLink {
+    width: 30px;
+    height: 30px;
+    font-size: 24px;
+  }
 }
 
 /* ---------- layout e login card novos ---------- */

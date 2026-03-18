@@ -38,9 +38,7 @@ export default function LoginPage() {
       localStorage.setItem("auth", "true");
       localStorage.setItem("user", user);
       localStorage.setItem("usuarioLogado", user);
-    }  
-    
-      else {
+    } else {
       sessionStorage.setItem("auth", "true");
       sessionStorage.setItem("user", user);
       localStorage.setItem("usuarioLogado", user);
@@ -142,7 +140,7 @@ export default function LoginPage() {
         <div className={styles.simpleSpider}>
           <div className={styles.spider}>
             <div className={styles.web}></div>
-            <Link href="/aranha" style={{ textDecoration: "none" }}>
+            <Link href="/aranha" className={styles.spiderLink} aria-label="Abrir jogo da aranha">
               🕷️
             </Link>
           </div>

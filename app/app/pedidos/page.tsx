@@ -153,7 +153,7 @@ export default function Pedidos() {
     });
 
     if (!res.ok) {
-      throw new Error('Erro ao criar pedido');
+      throw new Error('Erro ao criar camisa');
     }
 
     return res.json();
@@ -184,7 +184,7 @@ async function updateOrder(id: number, payload: Partial<Order>) {
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => null);
-    const msg = errBody?.error || `Erro ao atualizar pedido (${res.status})`;
+    const msg = errBody?.error || `Erro ao atualizar camisa (${res.status})`;
     throw new Error(msg);
   }
 
@@ -236,6 +236,20 @@ async function updateOrder(id: number, payload: Partial<Order>) {
       default:
         return '';
     }
+  }
+
+  function previewText(value?: string, max = 14) {
+    const text = (value || '').trim();
+    if (!text) return '-';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max)}...`;
+  }
+
+  function previewCpf(value?: string) {
+    const text = (value || '').trim();
+    if (!text) return '-';
+    if (text.length <= 7) return text;
+    return `${text.slice(0, 7)}....`;
   }
 
   const sorted = useMemo(() => {
@@ -386,11 +400,11 @@ async function updateOrder(id: number, payload: Partial<Order>) {
       }
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Erro ao salvar pedido');
+      alert(err?.message || 'Erro ao salvar camisa');
     }
   };
 
-  const on = <K extends keyof Order>(k: K, v: any) =>
+  const on = <K extends keyof Order>(k: K, v: Order[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
   const showModal = editingId !== null || isCreating;
@@ -404,130 +418,209 @@ async function updateOrder(id: number, payload: Partial<Order>) {
       </aside>
 
       <section className={styles.content}>
-        <header className={styles.header}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            <div>
-              <p className={styles.breadcrumb}>
-                Pedidos <FontAwesomeIcon icon={faList} />
-              </p>
-              <h1 className={styles.title}>Listar</h1>
+        <header className={styles.hero}>
+          <div className={styles.heroContent}>
+            <p className={styles.breadcrumb}>
+              <FontAwesomeIcon icon={faList} />
+              Central de camisas
+            </p>
+            <h1 className={styles.title}>Lista camisas</h1>
+          </div>
+
+          <div className={styles.heroActions}>
+            <div className={styles.heroMeta}>
+              <span className={styles.heroChip}>
+                Página atual <strong>{currentPage}</strong>
+              </span>
+              <span className={styles.heroChip}>
+                Registros <strong>{totalItems}</strong>
+              </span>
             </div>
 
-            <button type="button" className={styles.editBtn} onClick={add}>
-              <FontAwesomeIcon icon={faPlus} /> Adicionar
+            <button type="button" className={styles.primaryBtn} onClick={add}>
+              <FontAwesomeIcon icon={faPlus} /> Nova camisa
             </button>
           </div>
         </header>
 
         <div className={styles.metricsRow}>
           <div className={styles.metricCard}>
-            <div className={styles.metricAmount}>{metrics.enviado}</div>
             <div className={styles.metricLabel}>Enviados</div>
+            <div className={styles.metricAmount}>{metrics.enviado}</div>
           </div>
 
           <div className={styles.metricCard}>
-            <div className={styles.metricAmount}>{metrics.pendente}</div>
             <div className={styles.metricLabel}>Pendentes</div>
+            <div className={styles.metricAmount}>{metrics.pendente}</div>
           </div>
 
           <div className={styles.metricCard}>
-            <div className={styles.metricAmount}>{metrics.total}</div>
             <div className={styles.metricLabel}>Total</div>
+            <div className={styles.metricAmount}>{metrics.total}</div>
+           
           </div>
         </div>
 
-        <div className={styles.listTopBar}>
-          <p className={styles.listInfo}>
-            Mostrando de {startItem} até {endItem} de {totalItems} registros
-          </p>
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarBlock}>
+            <p className={styles.toolbarEyebrow}>Painel de consulta</p>
+            <p className={styles.listInfo}>
+              Mostrando de {startItem} até {endItem} de {totalItems} registros
+            </p>
+          </div>
           {renderPagination()}
         </div>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('id')} className={styles.sortableHeader}>
-                  ID {renderSortArrow('id')}
-                </th>
-                <th onClick={() => handleSort('rastreio')} className={styles.sortableHeader}>
-                  Rastreio {renderSortArrow('rastreio')}
-                </th>
-                <th onClick={() => handleSort('usuario')} className={styles.sortableHeader}>
-                  Usuário {renderSortArrow('usuario')}
-                </th>
-                <th onClick={() => handleSort('nome')} className={styles.sortableHeader}>
-                  Nome {renderSortArrow('nome')}
-                </th>
-                <th onClick={() => handleSort('cpf')} className={styles.sortableHeader}>
-                  CPF {renderSortArrow('cpf')}
-                </th>
-                <th onClick={() => handleSort('telefone')} className={styles.sortableHeader}>
-                  Telefone {renderSortArrow('telefone')}
-                </th>
-                <th onClick={() => handleSort('tamanho')} className={styles.sortableHeader}>
-                  Tamanho {renderSortArrow('tamanho')}
-                </th>
-                <th onClick={() => handleSort('endereco')} className={styles.sortableHeader}>
-                  Endereço {renderSortArrow('endereco')}
-                </th>
-                <th onClick={() => handleSort('status')} className={styles.sortableHeader}>
-                  Status {renderSortArrow('status')}
-                </th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {paginatedOrders.map((o) => (
-                <tr key={o.id}>
-                  <td>{o.id}</td>
-                  <td>{o.rastreio ?? '-'}</td>
-                  <td className={styles.userCell}>{o.usuario ?? '-'}</td>
-                  <td>{o.nome ?? '-'}</td>
-                  <td>{o.cpf ?? '-'}</td>
-                  <td>{o.telefone ?? '-'}</td>
-                  <td>{o.tamanho ?? '-'}</td>
-                  <td className={styles.addressCell}>{o.endereco ?? '-'}</td>
-
-                  <td
-                    className={`${styles.status} ${
-                      (o.status || '').toLowerCase() === 'pendente'
-                        ? styles.statusPendente
-                        : (o.status || '').toLowerCase() === 'enviado'
-                        ? styles.statusEnviado
-                        : styles.statusDefault
-                    }`}
-                  >
-                    {o.status ?? '-'}
-                  </td>
-
-                      <td className={styles.actionsCell}>
-                       <Link href={`/pedidos/${o.id}`} className={styles.viewBtn}>
-                            Visualizar
-                        </Link>
-
-                        <Link href={`/pedidos/${o.id}/logs`} className={styles.logBtn} title="Ver histórico">
-                          <FontAwesomeIcon icon={faClockRotateLeft} />
-                                
-                          </Link>
-
-                        <button className={styles.editBtn} onClick={() => edit(o.id)} title="Editar">
-                            <FontAwesomeIcon icon={faEdit} />
-                        </button>
-                      </td>
-                </tr>
-              ))}
-
-              {paginatedOrders.length === 0 && (
+        <div className={styles.tableShell}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <colgroup>
+                <col className={styles.colId} />
+                <col className={styles.colTracking} />
+                <col className={styles.colUser} />
+                <col className={styles.colClient} />
+                <col className={styles.colCpf} />
+                <col className={styles.colPhone} />
+                <col className={styles.colSize} />
+                <col className={styles.colAddress} />
+                <col className={styles.colStatus} />
+                <col className={styles.colActions} />
+              </colgroup>
+              <thead>
                 <tr>
-                  <td colSpan={10} style={{ textAlign: 'center', padding: 20 }}>
-                    Nenhum pedido encontrado.
-                  </td>
+                  <th onClick={() => handleSort('id')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      ID {renderSortArrow('id')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('rastreio')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Rastreio {renderSortArrow('rastreio')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('usuario')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Usuário {renderSortArrow('usuario')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('nome')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Cliente {renderSortArrow('nome')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('cpf')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      CPF {renderSortArrow('cpf')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('telefone')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Telefone {renderSortArrow('telefone')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('tamanho')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Tamanho {renderSortArrow('tamanho')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('endereco')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Endereço {renderSortArrow('endereco')}
+                    </span>
+                  </th>
+                  <th onClick={() => handleSort('status')} className={styles.sortableHeader}>
+                    <span className={styles.headerLabel}>
+                      Status {renderSortArrow('status')}
+                    </span>
+                  </th>
+                  <th>Ações</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {paginatedOrders.map((o) => (
+                  <tr key={o.id}>
+                    <td>
+                      <span className={styles.idCell}>{o.id}</span>
+                    </td>
+                    <td>
+                      <div className={styles.trackingCell}>
+                        <span className={styles.trackingCode} title={o.rastreio ?? 'Sem código'}>
+                          {o.rastreio ? previewText(o.rastreio, 12) : 'Sem código'}
+                        </span>
+                       
+                      </div>
+                    </td>
+                    <td className={styles.userCell}>
+                      <span className={styles.mainText}>{o.usuario ?? '-'}</span>
+                      
+                    </td>
+                    <td title={o.nome ?? '-'}>
+                      <span className={styles.mainText}>{previewText(o.nome, 18)}</span>
+                      
+                    </td>
+                    <td title={o.cpf ?? '-'}>
+                      {previewCpf(o.cpf)}
+                    </td>
+                    <td title={o.telefone ?? '-'}>
+                      {previewText(o.telefone, 12)}
+                    </td>
+                    <td title={o.tamanho ?? '-'}>
+                      {previewText(o.tamanho, 10)}
+                    </td>
+                    <td className={styles.addressCell} title={o.endereco ?? '-'}>
+                      {previewText(o.endereco, 20)}
+                    </td>
+
+                    <td>
+                      <span
+                        className={`${styles.status} ${
+                          (o.status || '').toLowerCase() === 'pendente'
+                            ? styles.statusPendente
+                            : (o.status || '').toLowerCase() === 'enviado'
+                            ? styles.statusEnviado
+                            : styles.statusDefault
+                        }`}
+                      >
+                        {o.status ?? '-'}
+                      </span>
+                    </td>
+
+                    <td className={styles.actionsCell}>
+                      <Link href={`/pedidos/${o.id}`} className={styles.viewBtn}>
+                        Visualizar
+                      </Link>
+
+                      <Link
+                        href={`/pedidos/${o.id}/logs`}
+                        className={styles.logBtn}
+                        title="Ver histórico"
+                      >
+                        <FontAwesomeIcon icon={faClockRotateLeft} />
+                      </Link>
+
+                      <button
+                        type="button"
+                        className={styles.editBtn}
+                        onClick={() => edit(o.id)}
+                        title="Editar"
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+
+                {paginatedOrders.length === 0 && (
+                  <tr>
+                    <td colSpan={10} className={styles.emptyState}>
+                      Nenhuma camisa encontrada.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {showModal && (
@@ -538,72 +631,99 @@ async function updateOrder(id: number, payload: Partial<Order>) {
             aria-labelledby="edit-title"
           >
             <div className={styles.modal}>
-              <h2 id="edit-title">
-                {isCreating ? 'Adicionar pedido' : `Editar pedido #${editingId}`}
-              </h2>
+              <div className={styles.modalHeader}>
+                <div className={styles.modalTitleBlock}>
+                  <h2 id="edit-title">
+                    {isCreating ? 'Adicionar camisa' : `Editar camisa #${editingId}`}
+                  </h2>
+                  <p>
+                    Atualize os dados principais da camisa em um formulário mais
+                    confortável e direto.
+                  </p>
+                </div>
+                <span className={styles.modalBadge}>
+                  {isCreating ? 'Novo registro' : 'Edição rápida'}
+                </span>
+              </div>
 
               <div className={styles.formGrid}>
-                <label className={styles.label}>Rastreio</label>
-                <input
-                  className={styles.field}
-                  value={form.rastreio ?? ''}
-                  onChange={(e) => on('rastreio', e.target.value)}
-                  autoFocus
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Rastreio</label>
+                  <input
+                    className={styles.field}
+                    value={form.rastreio ?? ''}
+                    onChange={(e) => on('rastreio', e.target.value)}
+                    autoFocus
+                  />
+                </div>
 
-                <label className={styles.label}>Usuário *</label>
-                <input
-                  className={styles.field}
-                  value={form.usuario ?? ''}
-                  onChange={(e) => on('usuario', e.target.value)}
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Usuário *</label>
+                  <input
+                    className={styles.field}
+                    value={form.usuario ?? ''}
+                    onChange={(e) => on('usuario', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>Nome</label>
-                <input
-                  className={styles.field}
-                  value={form.nome ?? ''}
-                  onChange={(e) => on('nome', e.target.value)}
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Nome</label>
+                  <input
+                    className={styles.field}
+                    value={form.nome ?? ''}
+                    onChange={(e) => on('nome', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>CPF</label>
-                <input
-                  className={styles.field}
-                  value={form.cpf ?? ''}
-                  onChange={(e) => on('cpf', e.target.value)}
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>CPF</label>
+                  <input
+                    className={styles.field}
+                    value={form.cpf ?? ''}
+                    onChange={(e) => on('cpf', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>Telefone</label>
-                <input
-                  className={styles.field}
-                  value={form.telefone ?? ''}
-                  onChange={(e) => on('telefone', e.target.value)}
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Telefone</label>
+                  <input
+                    className={styles.field}
+                    value={form.telefone ?? ''}
+                    onChange={(e) => on('telefone', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>Tamanho</label>
-                <input
-                  className={styles.field}
-                  value={form.tamanho ?? ''}
-                  onChange={(e) => on('tamanho', e.target.value)}
-                />
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Tamanho</label>
+                  <input
+                    className={styles.field}
+                    value={form.tamanho ?? ''}
+                    onChange={(e) => on('tamanho', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>Endereço</label>
-                <textarea
-                  className={styles.field}
-                  rows={3}
-                  value={form.endereco ?? ''}
-                  onChange={(e) => on('endereco', e.target.value)}
-                />
+                <div className={`${styles.fieldWrap} ${styles.fieldWrapFull}`}>
+                  <label className={styles.label}>Endereço</label>
+                  <textarea
+                    className={styles.field}
+                    rows={3}
+                    value={form.endereco ?? ''}
+                    onChange={(e) => on('endereco', e.target.value)}
+                  />
+                </div>
 
-                <label className={styles.label}>Status</label>
-                <select
-                  className={styles.field}
-                  value={form.status ?? ''}
-                  onChange={(e) => on('status', e.target.value)}
-                >
-                  <option value="">-- selecione --</option>
-                  <option value="Pendente">Pendente</option>
-                  <option value="Enviado">Enviado</option>
-                </select>
+                <div className={styles.fieldWrap}>
+                  <label className={styles.label}>Status</label>
+                  <select
+                    className={styles.field}
+                    value={form.status ?? ''}
+                    onChange={(e) => on('status', e.target.value)}
+                  >
+                    <option value="">-- selecione --</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Enviado">Enviado</option>
+                  </select>
+                </div>
               </div>
 
               <div className={styles.modalActions}>

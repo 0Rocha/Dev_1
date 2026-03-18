@@ -1,5 +1,4 @@
 import { pool } from "@/lib/db";
-console.log("DATABASE_URL existe?", !!process.env.DATABASE_URL);
 
 export const runtime = "nodejs";
 
@@ -32,7 +31,7 @@ export async function GET() {
   }
 }
 
-/* POST /api/pedidos - cria novo pedido */
+/* POST /api/pedidos - cria nova camisa */
 export async function POST(req: Request) {
   try {
     const raw = await req.json();
@@ -71,10 +70,6 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const raw = await req.json();
-
-      // (para debugar o body vindo do frontend)
-    console.log("DEBUG - BODY RECEBIDO NO PUT /api/pedidos:", raw);
-    // <<< fim do debug
     const id = Number(raw?.id ?? raw?.ID ?? raw?.Id);
     if (!id || Number.isNaN(id)) {
       return Response.json({ error: 'Campo "id" obrigatório e numérico' }, { status: 400 });
@@ -117,14 +112,10 @@ export async function PUT(req: Request) {
     const sql = `UPDATE pedidos SET ${setClauses.join(", ")} WHERE id = $${values.length + 1} RETURNING *`;
     values.push(id);
 
-    // DEBUG opcional: log SQL e values (remova em produção)
-    console.log("SQL:", sql);
-    console.log("VALUES:", values);
-
     const result = await pool.query(sql, values);
 
     if (result.rowCount === 0) {
-      return Response.json({ error: "Pedido não encontrado" }, { status: 404 });
+      return Response.json({ error: "Camisa não encontrada" }, { status: 404 });
     }
 
     return Response.json(result.rows[0], { status: 200 });
@@ -152,7 +143,7 @@ export async function DELETE(req: Request) {
     );
 
     if (result.rowCount === 0) {
-      return Response.json({ error: 'Pedido não encontrado' }, { status: 404 });
+      return Response.json({ error: 'Camisa não encontrada' }, { status: 404 });
     }
 
     return Response.json(

@@ -4,9 +4,16 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../../components/SidebarAdmin';
-import styles from '../pedidos.module.css';
+import sharedStyles from '../pedidos.module.css';
+import styles from './buscar.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClockRotateLeft, faEdit, } from '@fortawesome/free-solid-svg-icons';
+import {
+  faClockRotateLeft,
+  faEdit,
+  faFileArrowDown,
+  faFileArrowUp,
+  faMagnifyingGlass,
+} from '@fortawesome/free-solid-svg-icons';
 const fn = Funnel_Sans({ subsets: ['latin'], weight: '400' });
 
 type Order = {
@@ -42,7 +49,7 @@ export default function BuscarPage() {
         const res = await fetch('/api/pedidos', { signal: controller.signal });
 
         if (!res.ok) {
-          throw new Error(`Erro ao carregar pedidos (${res.status})`);
+          throw new Error(`Erro ao carregar camisas (${res.status})`);
         }
 
         const data = await res.json();
@@ -52,7 +59,7 @@ export default function BuscarPage() {
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
 
-        console.error('Erro ao carregar pedidos', err);
+        console.error('Erro ao carregar camisas', err);
         if (active) setOrders([]);
       } finally {
         if (active) setLoading(false);
@@ -130,7 +137,7 @@ export default function BuscarPage() {
 
         if (importados === 0) {
           setImportError(
-            `Nenhum pedido foi importado. Total lido: ${total}. Ignorados: ${ignorados}.`
+            `Nenhuma camisa foi importada. Total lido: ${total}. Ignorados: ${ignorados}.`
           );
         } else {
           setImportMessage(
@@ -144,7 +151,7 @@ export default function BuscarPage() {
               setOrders(Array.isArray(newData) ? newData : []);
             }
           } catch (err) {
-            console.warn('Falha ao recarregar pedidos após importação:', err);
+            console.warn('Falha ao recarregar camisas após importação:', err);
           }
         }
       }
@@ -160,106 +167,68 @@ export default function BuscarPage() {
     window.open('/api/export-pedidos', '_blank');
   };
 
+  function previewText(value?: string, max = 18) {
+    const text = (value || '').trim();
+    if (!text) return '-';
+    if (text.length <= max) return text;
+    return `${text.slice(0, max)}...`;
+  }
+
   return (
-    <main className={`${fn.className} ${styles.page}`}>
-      <aside className={styles.sidebar}>
+    <main className={`${fn.className} ${sharedStyles.page}`}>
+      <aside className={sharedStyles.sidebar}>
         <SidebarAdmin />
       </aside>
 
-      <section className={styles.content}>
-        <header className={styles.header}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
-          >
+      <section className={sharedStyles.content}>
+        <header className={styles.hero}>
+          <div className={styles.heroContent}>
+            <p className={sharedStyles.breadcrumb}>
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+              Buscar 
+            </p>
+            
+          </div>
+
+          <div className={styles.heroMeta}>
+            <span className={styles.heroChip}>
+              Total <strong>{orders.length}</strong>
+            </span>
+            <span className={styles.heroChip}>
+              Resultados <strong>{resultados.length}</strong>
+            </span>
+          </div>
+        </header>
+
+        <section className={styles.panel}>
+          <div className={styles.panelTop}>
             <div>
-              <p className={styles.breadcrumb}>Buscar</p>
-              <h1 className={styles.title}>Buscar camisas</h1>
+              <h2 className={styles.panelTitle}>Filtros e operações</h2>
+              <p className={styles.panelText}>
+                Escolha o campo da busca e refine o resultado. Você também pode
+                importar novas camisas por CSV ou exportar a base atual.
+              </p>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <input
-                type="text"
-                placeholder="Buscar por ID"
-                value={tipoBusca === 'id' ? busca : ''}
-                onChange={(e) => {
-                  setTipoBusca('id');
-                  setBusca(e.target.value);
-                }}
-                style={{
-                  padding: 8,
-                  borderRadius: 6,
-                  border: tipoBusca === 'id' ? '1px solid #4F46E5' : '1px solid #ccc',
-                  width: 180,
-                }}
-                aria-label="Buscar por ID"
-                />
-
-                <input
-                type="text"
-                placeholder="Buscar por login"
-                value={tipoBusca === 'login' ? busca : ''}
-                onChange={(e) => {
-                  setTipoBusca('login');
-                  setBusca(e.target.value);
-                }}
-                style={{
-                  padding: 8,
-                  borderRadius: 6,
-                  border: tipoBusca === 'login' ? '1px solid #4F46E5' : '1px solid #ccc',
-                  width: 180,
-                }}
-                aria-label="Buscar por login"
-                />
-
-                <input
-                type="text"
-                placeholder="Buscar por usuário"
-                value={tipoBusca === 'usuario' ? busca : ''}
-                onChange={(e) => {
-                  setTipoBusca('usuario');
-                  setBusca(e.target.value);
-                }}
-                style={{
-                  padding: 8,
-                  borderRadius: 6,
-                  border: tipoBusca === 'usuario' ? '1px solid #4F46E5' : '1px solid #ccc',
-                  width: 180,
-                }}
-                aria-label="Buscar por usuário"
-                />
+            <div className={styles.panelActions}>
               <button
                 type="button"
                 onClick={handleFileClick}
                 disabled={importLoading}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: importLoading ? '#f0f0f0' : '#fff',
-                  cursor: importLoading ? 'not-allowed' : 'pointer',
-                }}
-                aria-label="Importar CSV "
+                className={styles.ghostBtn}
+                aria-label="Importar CSV"
               >
+                <FontAwesomeIcon icon={faFileArrowUp} />
                 {importLoading ? 'Importando...' : 'Importar CSV'}
               </button>
 
               <button
                 type="button"
                 onClick={handleExportCSV}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  cursor: 'pointer',
-                }}
-                aria-label="Exportar CSV "
+                className={styles.darkBtn}
+                aria-label="Exportar CSV"
               >
+                <FontAwesomeIcon icon={faFileArrowDown} />
                 Exportar CSV
               </button>
 
@@ -272,92 +241,140 @@ export default function BuscarPage() {
               />
             </div>
           </div>
-        </header>
 
-        <div style={{ marginTop: 8, marginBottom: 18 }}>
-          {loading && <p>Carregando...</p>}
+          <div className={styles.filtersGrid}>
+            <div className={styles.fieldWrap}>
+              <label className={styles.label}>Buscar por ID</label>
+              <input
+                type="text"
+                placeholder="Digite o ID"
+                value={tipoBusca === 'id' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('id');
+                  setBusca(e.target.value);
+                }}
+                className={`${styles.field} ${tipoBusca === 'id' ? styles.fieldActive : ''}`}
+                aria-label="Buscar por ID"
+              />
+            </div>
+
+            <div className={styles.fieldWrap}>
+              <label className={styles.label}>Buscar por login</label>
+              <input
+                type="text"
+                placeholder="Digite o login"
+                value={tipoBusca === 'login' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('login');
+                  setBusca(e.target.value);
+                }}
+                className={`${styles.field} ${tipoBusca === 'login' ? styles.fieldActive : ''}`}
+                aria-label="Buscar por login"
+              />
+            </div>
+
+            <div className={styles.fieldWrap}>
+              <label className={styles.label}>Buscar por usuário</label>
+              <input
+                type="text"
+                placeholder="Digite o nome"
+                value={tipoBusca === 'usuario' ? busca : ''}
+                onChange={(e) => {
+                  setTipoBusca('usuario');
+                  setBusca(e.target.value);
+                }}
+                className={`${styles.field} ${tipoBusca === 'usuario' ? styles.fieldActive : ''}`}
+                aria-label="Buscar por usuário"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.statusBar}>
+          {loading && <div className={styles.statusCard}>Carregando camisas...</div>}
           {!loading && !busca && (
-            <p>Digite algo no campo de busca para ver resultados.</p>
+            <div className={styles.statusCard}>
+              Digite algo em um dos campos acima para começar a busca.
+            </div>
           )}
           {!loading && busca && resultados.length === 0 && (
-            <p>Nenhum resultado encontrado para "{busca}".</p>
+            <div className={styles.emptyCard}>
+              Nenhum resultado encontrado para &quot;{busca}&quot;.
+            </div>
           )}
-
-          {importMessage && <p style={{ color: 'green' }}>{importMessage}</p>}
-          {importError && <p style={{ color: 'crimson' }}>Erro: {importError}</p>}
+          {importMessage && <div className={styles.statusCard}>{importMessage}</div>}
+          {importError && <div className={styles.errorCard}>Erro: {importError}</div>}
         </div>
 
         {!loading && resultados.length > 0 && (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Rastreio</th>
-                  <th>Usuário</th>
-                  <th>Nome</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resultados.map((o) => (
-                  <tr key={o.id}>
-                    <td>{o.id}</td>
-                    <td className={styles.clientCell}>{o.rastreio ?? '-'}</td>
-                    <td className={styles.userCell}>{o.usuario ?? '-'}</td>
-                    <td className={styles.clientCell}>{o.nome ?? '-'}</td>
-                    <td
-                      className={`${styles.status} ${
-                        (o.status || '').toLowerCase() === 'pendente'
-                          ? styles.statusPendente
-                          : (o.status || '').toLowerCase() === 'enviado'
-                          ? styles.statusEnviado
-                          : styles.statusDefault
-                      }`}
-                    >
-                      {o.status ?? '-'}
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <Link
-                          href={`/pedidos/${o.id}/editar`}
-                          style={{
-                            display: 'inline-block',
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #ccc',
-                            background: '#fff',
-                            textDecoration: 'none',
-                            color: '#111',
-                            fontSize: 14,
-                          }}
-                        >
-                           <FontAwesomeIcon icon={faEdit} />
-                        </Link>
-
-                        <Link
-                          href={`/pedidos/${o.id}/logs`}
-                          style={{
-                            display: 'inline-block',
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            border: '1px solid #cfe0ff',
-                            background: '#eef4ff',
-                            textDecoration: 'none',
-                            color: '#2954c8',
-                            fontSize: 14,
-                            fontWeight: 600,
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faClockRotateLeft} />
-                        </Link>
-                      </div>
-                    </td>
+          <div className={styles.tableShell}>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Rastreio</th>
+                    <th>Usuário</th>
+                    <th>Nome</th>
+                    <th>Status</th>
+                    <th>Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {resultados.map((o) => (
+                    <tr key={o.id}>
+                      <td>
+                        <span className={styles.idCell}>{o.id}</span>
+                      </td>
+                      <td title={o.rastreio ?? '-'}>
+                        <span className={styles.mainText}>{previewText(o.rastreio, 16)}</span>
+                        <span className={styles.subText}>Código</span>
+                      </td>
+                      <td title={o.usuario ?? '-'}>
+                        <span className={styles.mainText}>{o.usuario ?? '-'}</span>
+                        <span className={styles.subText}>Login</span>
+                      </td>
+                      <td title={o.nome ?? '-'}>
+                        <span className={styles.mainText}>{previewText(o.nome, 22)}</span>
+                        <span className={styles.subText}>Usuário</span>
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.status} ${
+                            (o.status || '').toLowerCase() === 'pendente'
+                              ? styles.statusPendente
+                              : (o.status || '').toLowerCase() === 'enviado'
+                              ? styles.statusEnviado
+                              : styles.statusDefault
+                          }`}
+                        >
+                          {o.status ?? '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.actionsCell}>
+                          <Link
+                            href={`/pedidos/${o.id}/editar`}
+                            className={styles.iconBtn}
+                            title="Editar"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </Link>
+
+                          <Link
+                            href={`/pedidos/${o.id}/logs`}
+                            className={styles.logBtn}
+                            title="Histórico"
+                          >
+                            <FontAwesomeIcon icon={faClockRotateLeft} />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>

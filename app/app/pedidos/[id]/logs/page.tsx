@@ -110,8 +110,8 @@ export default async function Page({
       <section className={styles.content}>
         <div className={styles.topBar}>
           <div>
-            <p className={styles.breadcrumb}>Pedidos / Logs</p>
-            <h1 className={styles.title}>Histórico do pedido #{id}</h1>
+            <p className={styles.breadcrumb}>Camisas / Logs</p>
+            <h1 className={styles.title}>Histórico da camisa #{id}</h1>
           </div>
 
           <Link href="/pedidos" className={styles.backBtn}>
@@ -131,7 +131,7 @@ export default async function Page({
                   <div className={styles.cardHeader}>
                     <div>
                       <h2 className={styles.cardTitle}>
-                        {log.acao === 'UPDATE' ? 'Pedido atualizado' : log.acao}
+                        {log.acao === 'UPDATE' ? 'Camisa atualizada' : log.acao}
                       </h2>
                       <p className={styles.cardMeta}>
                         Alterado por <strong>{log.usuario_nome || 'desconhecido'}</strong>

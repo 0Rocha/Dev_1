@@ -19,6 +19,10 @@ export default function SidebarAdmin({ className = "" }) {
 
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [usuarioLogado, setUsuarioLogado] = useState("");
+  const [aiConfigured, setAiConfigured] = useState(false);
+  const [aiLabel, setAiLabel] = useState("Assistente IA offline");
+
+  const aiPageActive = pathname === "/assistente-ia";
 
   useEffect(() => {
     const usuario =
@@ -29,6 +33,32 @@ export default function SidebarAdmin({ className = "" }) {
       "";
 
     setUsuarioLogado(usuario);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAiStatus() {
+      try {
+        const res = await fetch("/api/ai/status", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+
+        if (!active || !res.ok || !data?.ok) return;
+
+        setAiConfigured(Boolean(data.configured));
+        setAiLabel(String(data.label || "Assistente IA offline"));
+      } catch {
+        if (!active) return;
+        setAiConfigured(false);
+        setAiLabel("Assistente IA offline");
+      }
+    }
+
+    loadAiStatus();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const menuStructure = useMemo(
@@ -75,10 +105,6 @@ export default function SidebarAdmin({ className = "" }) {
     </div>
 
     <div className={styles.container}>
-      <div className={styles.userHello}>
-        Olá, <strong>{usuarioLogado || "admin"}</strong>
-      </div>
-
       <nav role="navigation" aria-label="Sidebar de administração">
         <button
           type="button"
@@ -153,6 +179,21 @@ export default function SidebarAdmin({ className = "" }) {
           </div>
         ))}
       </nav>
+
+      <div className={styles.userHello}>
+        Olá, <strong>{usuarioLogado || "admin"}</strong>
+        <Link
+          href="/assistente-ia"
+          className={`${styles.aiStatus} ${aiPageActive ? styles.aiStatusActive : ""}`}
+          aria-current={aiPageActive ? "page" : undefined}
+        >
+          <span
+            className={`${styles.aiDot} ${aiConfigured ? styles.aiDotOnline : styles.aiDotOffline}`}
+            aria-hidden="true"
+          />
+          {aiLabel}
+        </Link>
+      </div>
     </div>
   </aside>
 );
