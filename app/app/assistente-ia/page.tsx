@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Funnel_Sans } from 'next/font/google';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCommentDots, faPaperPlane, faShirt } from '@fortawesome/free-solid-svg-icons';
 import SidebarAdmin from '../components/SidebarAdmin';
 import styles from './assistente.module.css';
 
@@ -16,20 +18,21 @@ type AskResponse = {
   usedRows?: number;
 };
 
-const EXAMPLE_QUESTIONS = [
-  'Quais camisas estao com status pendente?',
- 
-  'Me diga os dados da camisa de ID 12.',
-];
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  meta?: string;
+};
 
 export default function AssistenteIaPage() {
   const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [authorized, setAuthorized] = useState(false);
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [meta, setMeta] = useState('');
 
   useEffect(() => {
     const localAuth = localStorage.getItem('auth');
@@ -56,19 +59,30 @@ export default function AssistenteIaPage() {
     setAuthorized(true);
   }, [router]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
   const trimmedQuestion = useMemo(() => question.trim(), [question]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitQuestion(text: string) {
+    const cleanedQuestion = text.trim();
 
-    if (!trimmedQuestion) {
-      setError('Escreva uma pergunta para consultar a assistente.');
+    if (!cleanedQuestion || loading) {
       return;
     }
 
     setLoading(true);
     setError('');
-    setMeta('');
+    setQuestion('');
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      text: cleanedQuestion,
+    };
+
+    setMessages((current) => [...current, userMessage]);
 
     try {
       const res = await fetch('/api/ai/ask', {
@@ -76,7 +90,7 @@ export default function AssistenteIaPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ question: trimmedQuestion }),
+        body: JSON.stringify({ question: cleanedQuestion }),
       });
 
       const data: AskResponse = await res.json().catch(() => ({}));
@@ -85,18 +99,34 @@ export default function AssistenteIaPage() {
         throw new Error(data?.error || `Falha ao consultar a assistente (${res.status})`);
       }
 
-      setAnswer(String(data.answer || ''));
-
       const parts: string[] = [];
       if (data.contextMode) parts.push(String(data.contextMode));
       if (typeof data.usedRows === 'number') parts.push(`${data.usedRows} camisas no contexto`);
-      setMeta(parts.join(' • '));
+
+      const assistantMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        text: String(data.answer || ''),
+        meta: parts.join(' • '),
+      };
+
+      setMessages((current) => [...current, assistantMessage]);
     } catch (err: any) {
-      setAnswer('');
-      setMeta('');
       setError(err?.message || 'Nao foi possivel consultar a assistente agora.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submitQuestion(trimmedQuestion);
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      void submitQuestion(trimmedQuestion);
     }
   }
 
@@ -111,94 +141,114 @@ export default function AssistenteIaPage() {
       <section className={styles.content}>
         <div className={styles.shell}>
           <header className={styles.hero}>
-            <div className={styles.heroText}>
-              <span className={styles.eyebrow}>
-                <span className={styles.eyebrowDot} aria-hidden="true" />
-                Assistente IA
-              </span>
-
-              <h1>Perguntas sobre as camisas</h1>
+            <div className={styles.heroBadge}>
+              <FontAwesomeIcon icon={faCommentDots} aria-hidden="true" />
+              Assistente IA
             </div>
-          </header>
-
-          <div className={styles.grid}>
-            <div className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <h2 className={styles.panelTitle}>Fazer pergunta</h2>
-                <p className={styles.panelDescription}>
-                  Pergunte por nome, usuario, ID, rastreio ou status. Quanto mais especifica a pergunta,
-                  melhor a resposta.
+            <div className={styles.heroBody}>
+              <div>
+                <h1>Conversa inteligente sobre as camisas</h1>
+                <p>
+                  Consulte tamanhos, status, IDs e dados da base em um chat mais direto. Enter envia e
+                  Shift+Enter cria uma nova linha.
                 </p>
               </div>
 
-              <form className={styles.questionForm} onSubmit={handleSubmit}>
+              <div className={styles.heroCard}>
+                <span className={styles.heroCardLabel}>Atalhos uteis</span>
+                <strong>qual a maior camisa?</strong>
+                <strong>quais as maiores camisas?</strong>
+                <strong>qual a menor camisa?</strong>
+              </div>
+            </div>
+          </header>
+
+          <div className={styles.chatShell}>
+            <div className={styles.chatHeader}>
+              <div className={styles.chatHeaderLeft}>
+                <div className={styles.assistantAvatar}>
+                  <FontAwesomeIcon icon={faShirt} aria-hidden="true" />
+                </div>
+                <div>
+                  <strong>Assistente de camisas</strong>
+                  <span>Respostas baseadas nos registros disponiveis</span>
+                </div>
+              </div>
+              <span className={styles.chatStatus}>{loading ? 'Consultando base...' : 'Online'}</span>
+            </div>
+
+            <div className={styles.chatMessages}>
+              {messages.length === 0 ? (
+                <div className={styles.emptyState}>
+                  Nenhuma mensagem ainda. Pergunte algo como &quot;qual a maior camisa?&quot; ou
+                  &quot;quais as maiores camisas?&quot;.
+                </div>
+              ) : null}
+
+              {messages.map((message) => (
+                <article
+                  key={message.id}
+                  className={`${styles.messageRow} ${
+                    message.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant
+                  }`}
+                >
+                  {message.role === 'assistant' ? (
+                    <div className={styles.inlineAvatar}>
+                      <FontAwesomeIcon icon={faShirt} aria-hidden="true" />
+                    </div>
+                  ) : null}
+
+                  <div
+                    className={`${styles.messageBubble} ${
+                      message.role === 'user' ? styles.messageUser : styles.messageAssistant
+                    }`}
+                  >
+                    <span className={styles.messageLabel}>
+                      {message.role === 'user' ? 'Voce' : 'Assistente'}
+                    </span>
+                    <p className={styles.messageBody}>{message.text}</p>
+                    {message.meta ? <span className={styles.messageMeta}>{message.meta}</span> : null}
+                  </div>
+                </article>
+              ))}
+
+              {loading ? (
+                <article className={`${styles.messageRow} ${styles.messageRowAssistant}`}>
+                  <div className={styles.inlineAvatar}>
+                    <FontAwesomeIcon icon={faShirt} aria-hidden="true" />
+                  </div>
+                  <div className={`${styles.messageBubble} ${styles.messageAssistant}`}>
+                    <span className={styles.messageLabel}>Assistente</span>
+                    <p className={styles.messageBody}>Consultando os dados e preparando a resposta...</p>
+                  </div>
+                </article>
+              ) : null}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {error ? <div className={styles.error}>{error}</div> : null}
+
+            <form className={styles.chatComposer} onSubmit={handleSubmit}>
+              <div className={styles.composerInputWrap}>
                 <textarea
                   className={styles.questionField}
                   value={question}
                   onChange={(event) => setQuestion(event.target.value)}
-                  placeholder="Exemplo: quais camisas estao pendentes para o usuario 3557?"
+                  onKeyDown={handleKeyDown}
+                  placeholder="Digite sua mensagem..."
+                  rows={1}
                 />
-
-                <div className={styles.actions}>
-                  <button type="submit" className={styles.submitBtn} disabled={loading || !trimmedQuestion}>
-                    {loading ? 'Consultando...' : 'Perguntar para a IA'}
-                  </button>
-                  <span className={styles.meta}>
-                    {loading ? 'Buscando dados e montando a resposta...' : meta || 'A resposta aparecera abaixo.'}
-                  </span>
-                </div>
-              </form>
-
-              {error ? <div className={styles.error}>{error}</div> : null}
-
-              <div className={styles.conversation}>
-                {trimmedQuestion ? (
-                  <article className={`${styles.message} ${styles.messageUser}`}>
-                    <span className={styles.messageLabel}>Sua pergunta</span>
-                    <p className={styles.messageBody}>{trimmedQuestion}</p>
-                  </article>
-                ) : null}
-
-                {answer ? (
-                  <article className={`${styles.message} ${styles.messageAssistant}`}>
-                    <span className={styles.messageLabel}>Resposta da assistente</span>
-                    <p className={styles.messageBody}>{answer}</p>
-                  </article>
-                ) : (
-                  <div className={styles.emptyState}>
-                    A assistente ainda nao respondeu nada nesta sessao. Envie uma pergunta para comecar.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <aside className={styles.panel}>
-              <div className={styles.panelHeader}>
-                <h2 className={styles.panelTitle}>Sugestoes</h2>
-                <p className={styles.panelDescription}>
-                  Estes exemplos ajudam a testar a integracao sem precisar montar o prompt do zero.
-                </p>
               </div>
 
-              <div className={styles.tips}>
-                {EXAMPLE_QUESTIONS.map((item) => (
-                  <div key={item} className={styles.tipCard}>
-                    <h3 className={styles.tipTitle}>Exemplo de pergunta</h3>
-                    <p className={styles.tipText}>
-                      <code>{item}</code>
-                    </p>
-                  </div>
-                ))}
-
-                <div className={styles.tipCard}>
-                  <h3 className={styles.tipTitle}>Como a resposta e gerada</h3>
-                  <p className={styles.tipText}>
-                    A rota consulta as camisas no banco, monta um contexto resumido e envia a pergunta para o
-                    Gemini responder somente com base nesses dados.
-                  </p>
-                </div>
+              <div className={styles.composerActions}>
+                <span className={styles.meta}>{loading ? 'Consultando...' : 'Enter envia'}</span>
+                <button type="submit" className={styles.submitBtn} disabled={loading || !trimmedQuestion}>
+                  <FontAwesomeIcon icon={faPaperPlane} aria-hidden="true" />
+                  Enviar
+                </button>
               </div>
-            </aside>
+            </form>
           </div>
         </div>
       </section>

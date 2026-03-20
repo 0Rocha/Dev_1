@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../../../components/SidebarAdmin';
-import styles from '../../pedidos.module.css';
+import styles from '../../camisas.module.css';
 
 const fn = Funnel_Sans({ subsets: ['latin'], weight: '400' });
 
-type Pedido = {
+type Camisa = {
   id: number;
   rastreio?: string;
   usuario?: string;
@@ -21,7 +21,7 @@ type Pedido = {
   status?: string;
 };
 
-const initialForm: Pedido = {
+const initialForm: Camisa = {
   id: 0,
   rastreio: '',
   usuario: '',
@@ -33,12 +33,12 @@ const initialForm: Pedido = {
   status: '',
 };
 
-export default function EditarPedidoPage() {
+export default function EditarCamisaPage() {
   const params = useParams();
   const router = useRouter();
   const id = Number(params?.id);
 
-  const [form, setForm] = useState<Pedido>(initialForm);
+  const [form, setForm] = useState<Camisa>(initialForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -79,30 +79,30 @@ export default function EditarPedidoPage() {
     let active = true;
     const controller = new AbortController();
 
-    async function loadPedido() {
+    async function loadCamisa() {
       try {
         setError(null);
 
-        const res = await fetch(`/api/pedidos/${id}`, { signal: controller.signal });
+        const res = await fetch(`/api/camisas/${id}`, { signal: controller.signal });
 
               if (!res.ok) {
               const data = await res.json().catch(() => null);
               throw new Error(data?.error ?? `Erro ao carregar camisa (${res.status})`);
               }
 
-              const pedido = await res.json();
+              const camisa = await res.json();
               if (!active) return;
 
         setForm({
-          id: pedido.id,
-          rastreio: pedido.rastreio ?? '',
-          usuario: pedido.usuario ?? '',
-          nome: pedido.nome ?? '',
-          cpf: pedido.cpf ?? '',
-          telefone: pedido.telefone ?? '',
-          tamanho: pedido.tamanho ?? '',
-          endereco: pedido.endereco ?? '',
-          status: pedido.status ?? '',
+          id: camisa.id,
+          rastreio: camisa.rastreio ?? '',
+          usuario: camisa.usuario ?? '',
+          nome: camisa.nome ?? '',
+          cpf: camisa.cpf ?? '',
+          telefone: camisa.telefone ?? '',
+          tamanho: camisa.tamanho ?? '',
+          endereco: camisa.endereco ?? '',
+          status: camisa.status ?? '',
         });
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
@@ -113,7 +113,7 @@ export default function EditarPedidoPage() {
       }
     }
 
-    loadPedido();
+    loadCamisa();
 
     return () => {
       active = false;
@@ -162,7 +162,7 @@ export default function EditarPedidoPage() {
       usuarioLogadoNome,
     };
 
-    const res = await fetch(`/api/pedidos/${id}`, {
+    const res = await fetch(`/api/camisas/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ export default function EditarPedidoPage() {
     setMessage('Camisa atualizada com sucesso.');
 
     setTimeout(() => {
-      router.push('/pedidos/buscar');
+      router.push('/camisas/buscar');
     }, 800);
   } catch (err: any) {
     console.error('Erro ao salvar camisa:', err);
@@ -201,7 +201,7 @@ export default function EditarPedidoPage() {
     setError(null);
 
     try {
-      const res = await fetch('/api/pedidos', {
+      const res = await fetch('/api/camisas', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +218,7 @@ export default function EditarPedidoPage() {
       setMessage('Camisa excluída com sucesso.');
 
       setTimeout(() => {
-        router.push('/pedidos/buscar');
+        router.push('/camisas/buscar');
       }, 600);
     } catch (err: any) {
       console.error('Erro ao excluir camisa:', err);
@@ -244,7 +244,7 @@ export default function EditarPedidoPage() {
 
             <div>
               <Link
-                href="/pedidos/buscar"
+                href="/camisas/buscar"
                 style={{
                   display: 'inline-block',
                   padding: '8px 12px',
@@ -410,7 +410,7 @@ export default function EditarPedidoPage() {
               </button>
 
               <Link
-                href="/pedidos/buscar"
+                href="/camisas/buscar"
                 style={{
                   display: 'inline-block',
                   padding: '10px 16px',

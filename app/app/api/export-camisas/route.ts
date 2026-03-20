@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
 function escapeCsv(value: unknown) {
@@ -26,7 +26,7 @@ export async function GET() {
         endereco,
         status,
         created_at
-      FROM pedidos
+      FROM camisas
       ORDER BY id DESC
     `);
 
@@ -81,3 +81,4 @@ export async function GET() {
     );
   }
 }
+

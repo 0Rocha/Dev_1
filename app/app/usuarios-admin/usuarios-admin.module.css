@@ -1,0 +1,277 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.94), transparent 34%),
+    linear-gradient(180deg, #f6f8fb 0%, #ebeff4 58%, #e4e8ee 100%);
+  color: #111827;
+}
+
+.content {
+  padding: 24px 26px 30px;
+}
+
+.shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero,
+.blockedCard {
+  padding: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(148, 163, 184, 0.16), transparent 28%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.08);
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #111827;
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero h1,
+.blockedCard h1 {
+  margin: 16px 0 10px;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.hero p,
+.blockedCard p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.userListCard,
+.editorCard {
+  padding: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.08);
+}
+
+.userListCard h2,
+.editorHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.userItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.userItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(15, 23, 42, 0.08);
+}
+
+.userItem strong {
+  font-size: 15px;
+}
+
+.userItem span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.userItemActive {
+  border-color: rgba(17, 24, 39, 0.1);
+  background: linear-gradient(135deg, #111827, #1f2937);
+}
+
+.userItemActive strong,
+.userItemActive span {
+  color: #f8fafc;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.sectionLabel {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.statusText {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field span {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.field select {
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 16px;
+  padding: 0 16px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.permissionSection {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.72), rgba(255, 255, 255, 0.9));
+}
+
+.sectionTop p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.permissionList {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.permissionCard {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+}
+
+.permissionCard input {
+  margin-top: 3px;
+}
+
+.permissionCard strong {
+  display: block;
+  font-size: 14px;
+}
+
+.permissionCard p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #111827, #1f2937);
+  color: #f8fafc;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.emptyState {
+  padding: 18px;
+  border: 1px dashed rgba(15, 23, 42, 0.12);
+  border-radius: 18px;
+  color: #64748b;
+  background: rgba(248, 250, 252, 0.82);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1100px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    padding: 18px 14px 22px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero,
+  .blockedCard,
+  .userListCard,
+  .editorCard {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .editorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

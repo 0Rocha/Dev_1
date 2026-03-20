@@ -10,7 +10,7 @@ export async function GET(
     const { id } = await params;
 
     const result = await pool.query(
-      "SELECT * FROM pedidos WHERE id = $1",
+      "SELECT * FROM camisas WHERE id = $1",
       [id]
     );
 
@@ -25,7 +25,7 @@ export async function GET(
       headers: { "Content-Type": "application/json" },
     });
   } catch (err: any) {
-    console.error("GET /api/pedidos/[id]:", err);
+    console.error("GET /api/camisas/[id]:", err);
     return new Response(JSON.stringify({ error: err?.message ?? "Erro" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -58,12 +58,12 @@ export async function PUT(
 
     await client.query("BEGIN");
 
-    const pedidoAntes = await client.query(
-      "SELECT * FROM pedidos WHERE id = $1",
+    const camisaAntes = await client.query(
+      "SELECT * FROM camisas WHERE id = $1",
       [id]
     );
 
-    if (!pedidoAntes.rows.length) {
+    if (!camisaAntes.rows.length) {
       await client.query("ROLLBACK");
 
       return new Response(
@@ -75,11 +75,11 @@ export async function PUT(
       );
     }
 
-    const antes = pedidoAntes.rows[0];
+    const antes = camisaAntes.rows[0];
 
-    const pedidoAtualizado = await client.query(
+    const camisaAtualizada = await client.query(
       `
-      UPDATE pedidos
+      UPDATE camisas
       SET
         rastreio = $1,
         usuario = $2,
@@ -95,12 +95,12 @@ export async function PUT(
       [rastreio, usuario, nome, cpf, telefone, tamanho, endereco, status, id]
     );
 
-    const depois = pedidoAtualizado.rows[0];
+    const depois = camisaAtualizada.rows[0];
 
     await client.query(
       `
-      INSERT INTO pedidos_log (
-        pedido_id,
+      INSERT INTO camisas_log (
+        camisa_id,
         acao,
         usuario_id,
         usuario_nome,
@@ -126,7 +126,7 @@ export async function PUT(
     });
   } catch (err: any) {
     await client.query("ROLLBACK");
-    console.error("PUT /api/pedidos/[id]:", err);
+    console.error("PUT /api/camisas/[id]:", err);
 
     return new Response(
       JSON.stringify({ error: err?.message ?? "Erro ao atualizar camisa" }),

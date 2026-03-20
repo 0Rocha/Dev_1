@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../../components/SidebarAdmin';
-import sharedStyles from '../pedidos.module.css';
+import sharedStyles from '../camisas.module.css';
 import styles from './buscar.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -46,7 +46,7 @@ export default function BuscarPage() {
 
     async function load() {
       try {
-        const res = await fetch('/api/pedidos', { signal: controller.signal });
+        const res = await fetch('/api/camisas', { signal: controller.signal });
 
         if (!res.ok) {
           throw new Error(`Erro ao carregar camisas (${res.status})`);
@@ -120,7 +120,7 @@ export default function BuscarPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/import-pedidos', {
+      const res = await fetch('/api/import-camisas', {
         method: 'POST',
         body: formData,
       });
@@ -145,7 +145,7 @@ export default function BuscarPage() {
           );
 
           try {
-            const r2 = await fetch('/api/pedidos');
+            const r2 = await fetch('/api/camisas');
             if (r2.ok) {
               const newData = await r2.json();
               setOrders(Array.isArray(newData) ? newData : []);
@@ -164,7 +164,7 @@ export default function BuscarPage() {
   };
 
   const handleExportCSV = () => {
-    window.open('/api/export-pedidos', '_blank');
+    window.open('/api/export-camisas', '_blank');
   };
 
   function previewText(value?: string, max = 18) {
@@ -354,7 +354,7 @@ export default function BuscarPage() {
                       <td>
                         <div className={styles.actionsCell}>
                           <Link
-                            href={`/pedidos/${o.id}/editar`}
+                            href={`/camisas/${o.id}/editar`}
                             className={styles.iconBtn}
                             title="Editar"
                           >
@@ -362,7 +362,7 @@ export default function BuscarPage() {
                           </Link>
 
                           <Link
-                            href={`/pedidos/${o.id}/logs`}
+                            href={`/camisas/${o.id}/logs`}
                             className={styles.logBtn}
                             title="Histórico"
                           >

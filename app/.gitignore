@@ -1,4 +1,15 @@
-node_modules
-.next
+# Variaveis locais da aplicacao
 .env
-.env*.local
+.env.local
+.env.*.local
+
+# Dependencias e build
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Logs e deploy
+*.log
+.vercel/

@@ -8,6 +8,7 @@ import styles from "./page.module.css";
 import SidebarAdmin from "./components/SidebarAdmin";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserLock } from "@fortawesome/free-solid-svg-icons";
+import { ensureUserProfile } from "@/lib/userProfiles";
 
 const funnelSans = Funnel_Sans({ subsets: ["latin"], weight: "400" });
 
@@ -25,7 +26,7 @@ export default function LoginPage() {
     const user = username.trim();
 
     if (!user || !password) {
-      setError("Preencha usuário e senha.");
+      setError("Preencha usu\u00E1rio e senha.");
       return;
     }
 
@@ -48,7 +49,8 @@ export default function LoginPage() {
       localStorage.removeItem("usuarioLogado");
     }
 
-    router.push("/pedidos");
+    ensureUserProfile(user);
+    router.push("/camisas");
   }
 
   return (
@@ -74,11 +76,11 @@ export default function LoginPage() {
             </h1>
           </header>
 
-          <p className={styles.breadcrumb}>Faça login para continuar</p>
+          <p className={styles.breadcrumb}>{"Fa\u00E7a login para continuar"}</p>
 
           <form onSubmit={handleSubmit} className={styles.loginForm} noValidate>
             <label htmlFor="username" className={styles.formLabel}>
-              Usuário
+              {"Usu\u00E1rio"}
             </label>
             <input
               id="username"
@@ -102,7 +104,7 @@ export default function LoginPage() {
               className={styles.input}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="********"
               required
               aria-required="true"
             />
@@ -129,7 +131,7 @@ export default function LoginPage() {
             </button>
 
             <div className={styles.signup}>
-              Não tem conta?{" "}
+              {"N\u00E3o tem conta? "}
               <Link href="/registro" className={styles.footerLink}>
                 Criar conta
               </Link>
@@ -141,7 +143,7 @@ export default function LoginPage() {
           <div className={styles.spider}>
             <div className={styles.web}></div>
             <Link href="/aranha" className={styles.spiderLink} aria-label="Abrir jogo da aranha">
-              🕷️
+              {"\uD83D\uDD77\uFE0F"}
             </Link>
           </div>
         </div>

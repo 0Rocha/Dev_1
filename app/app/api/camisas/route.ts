@@ -2,10 +2,6 @@ import { pool } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-/**
- * Normalize incoming payload keys to DB column names.
- * Accepts variants (ex: Nome -> nome).
- */
 function normalizeData(input: any) {
   if (!input || typeof input !== "object") return {};
   return {
@@ -20,18 +16,18 @@ function normalizeData(input: any) {
   };
 }
 
-/* GET /api/pedidos */
+/* GET /api/camisas */
 export async function GET() {
   try {
-    const result = await pool.query("SELECT * FROM pedidos ORDER BY id DESC");
+    const result = await pool.query("SELECT * FROM camisas ORDER BY id DESC");
     return Response.json(result.rows);
   } catch (error: any) {
-    console.error("GET /api/pedidos:", error);
+    console.error("GET /api/camisas:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
 
-/* POST /api/pedidos - cria nova camisa */
+/* POST /api/camisas - cria nova camisa */
 export async function POST(req: Request) {
   try {
     const raw = await req.json();
@@ -43,7 +39,7 @@ export async function POST(req: Request) {
     }
 
     const result = await pool.query(
-      `INSERT INTO pedidos
+      `INSERT INTO camisas
       (rastreio, usuario, nome, cpf, telefone, tamanho, endereco, status)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       RETURNING *`,
@@ -61,12 +57,12 @@ export async function POST(req: Request) {
 
     return Response.json(result.rows[0], { status: 201 });
   } catch (error: any) {
-    console.error("POST /api/pedidos:", error);
+    console.error("POST /api/camisas:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
 
-/* PUT /api/pedidos - atualiza pedido (parcial) */
+/* PUT /api/camisas - atualiza camisa (parcial) */
 export async function PUT(req: Request) {
   try {
     const raw = await req.json();
@@ -94,7 +90,10 @@ export async function PUT(req: Request) {
     // função auxiliar: verifica se o cliente enviou o campo (em lower ou capitalized)
     const wasProvided = (field: string) => {
       const capitalized = field[0].toUpperCase() + field.slice(1);
-      return Object.prototype.hasOwnProperty.call(raw, field) || Object.prototype.hasOwnProperty.call(raw, capitalized);
+      return (
+        Object.prototype.hasOwnProperty.call(raw, field) ||
+        Object.prototype.hasOwnProperty.call(raw, capitalized)
+      );
     };
 
     allowedFields.forEach((field) => {
@@ -109,7 +108,7 @@ export async function PUT(req: Request) {
     }
 
     // adiciona id como último parâmetro
-    const sql = `UPDATE pedidos SET ${setClauses.join(", ")} WHERE id = $${values.length + 1} RETURNING *`;
+    const sql = `UPDATE camisas SET ${setClauses.join(", ")} WHERE id = $${values.length + 1} RETURNING *`;
     values.push(id);
 
     const result = await pool.query(sql, values);
@@ -120,7 +119,7 @@ export async function PUT(req: Request) {
 
     return Response.json(result.rows[0], { status: 200 });
   } catch (error: any) {
-    console.error("PUT /api/pedidos:", error);
+    console.error("PUT /api/camisas:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
@@ -131,27 +130,18 @@ export async function DELETE(req: Request) {
     const id = Number(body?.id);
 
     if (!id || Number.isNaN(id)) {
-      return Response.json(
-        { error: 'Campo "id" obrigatório e numérico' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'Campo "id" obrigatório e numérico' }, { status: 400 });
     }
 
-    const result = await pool.query(
-      'DELETE FROM pedidos WHERE id = $1 RETURNING *',
-      [id]
-    );
+    const result = await pool.query("DELETE FROM camisas WHERE id = $1 RETURNING *", [id]);
 
     if (result.rowCount === 0) {
-      return Response.json({ error: 'Camisa não encontrada' }, { status: 404 });
+      return Response.json({ error: "Camisa não encontrada" }, { status: 404 });
     }
 
-    return Response.json(
-      { ok: true, deleted: result.rows[0] },
-      { status: 200 }
-    );
+    return Response.json({ ok: true, deleted: result.rows[0] }, { status: 200 });
   } catch (error: any) {
-    console.error('DELETE /api/pedidos:', error);
+    console.error("DELETE /api/camisas:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 }

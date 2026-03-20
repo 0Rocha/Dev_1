@@ -38,7 +38,7 @@ export default function CamisaPage() {
 
     (async () => {
       try {
-        const res = await fetch(`/api/pedidos/${encodeURIComponent(id)}`);
+        const res = await fetch(`/api/camisas/${encodeURIComponent(id)}`);
         if (!res.ok) {
           if (res.status === 404) {
             throw new Error('Camisa não encontrada.');
@@ -78,7 +78,7 @@ export default function CamisaPage() {
           <h1>Camisa não encontrada</h1>
           <p>{error ?? `ID buscado: ${id || '(não disponível)'}`}</p>
           <p>
-            <Link href="/pedidos" className={styles.btnSecondary}>Voltar para lista</Link>
+            <Link href="/camisas" className={styles.btnSecondary}>Voltar para lista</Link>
           </p>
         </section>
       </main>

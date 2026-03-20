@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../components/SidebarAdmin';
-import styles from './pedidos.module.css';
+import styles from './camisas.module.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -54,7 +54,7 @@ const statusOrder: Record<string, number> = {
   cancelado: 4,
 };
 
-export default function Pedidos() {
+export default function Camisas() {
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -102,7 +102,7 @@ export default function Pedidos() {
 
     async function load() {
       try {
-        const res = await fetch('/api/pedidos', { signal: controller.signal });
+        const res = await fetch('/api/camisas', { signal: controller.signal });
 
         if (!res.ok) {
           throw new Error(`Failed to load (${res.status})`);
@@ -146,7 +146,7 @@ export default function Pedidos() {
   }, [authorized]);
 
   async function createOrder(payload: Partial<Order>) {
-    const res = await fetch('/api/pedidos', {
+    const res = await fetch('/api/camisas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -176,7 +176,7 @@ async function updateOrder(id: number, payload: Partial<Order>) {
     usuarioLogadoNome,
   };
 
-  const res = await fetch(`/api/pedidos/${id}`, {
+  const res = await fetch(`/api/camisas/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -587,12 +587,12 @@ async function updateOrder(id: number, payload: Partial<Order>) {
                     </td>
 
                     <td className={styles.actionsCell}>
-                      <Link href={`/pedidos/${o.id}`} className={styles.viewBtn}>
+                      <Link href={`/camisas/${o.id}`} className={styles.viewBtn}>
                         Visualizar
                       </Link>
 
                       <Link
-                        href={`/pedidos/${o.id}/logs`}
+                        href={`/camisas/${o.id}/logs`}
                         className={styles.logBtn}
                         title="Ver histórico"
                       >

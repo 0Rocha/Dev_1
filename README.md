@@ -1,4 +1,4 @@
-# Stack padrão — Next.js + PostgreSQL
+# Stack padrão - Next.js + PostgreSQL
 
 Estrutura padrão para aplicações web com Docker Compose: aplicação Next.js e PostgreSQL, rede interna entre containers e integração à rede externa `web-proxy` (reverse proxy + Let's Encrypt).
 
@@ -54,22 +54,22 @@ Estrutura padrão para aplicações web com Docker Compose: aplicação Next.js 
 
 ## Estrutura
 
-- `docker-compose.yml` — serviços `app` (Next.js) e `db` (PostgreSQL), redes `internal` e `web-proxy`
-- `Dockerfile` — build multi-stage da aplicação Next.js (Node 22.12.0-alpine, output standalone)
-- `.env.example` — template de variáveis (web-proxy, banco e app)
-- `app/` — código da aplicação Next.js
+- `docker-compose.yml` - serviços `app` (Next.js) e `db` (PostgreSQL), redes `internal` e `web-proxy`
+- `Dockerfile` - build multi-stage da aplicação Next.js (Node 22.12.0-alpine, output standalone)
+- `.env.example` - template de variáveis (web-proxy, banco e app)
+- `app/` - código da aplicação Next.js
 
 ## Variáveis de ambiente (resumo)
 
-| Variável           | Serviço | Descrição                          |
-|--------------------|---------|------------------------------------|
-| `VIRTUAL_HOST`     | app     | Hostname para o reverse proxy      |
-| `VIRTUAL_PORT`     | app     | Porta interna do app (ex.: 3000)   |
-| `LETSENCRYPT_HOST` | app     | Hostname para certificado HTTPS    |
-| `POSTGRES_USER`    | db      | Usuário do PostgreSQL              |
-| `POSTGRES_PASSWORD`| db      | Senha do PostgreSQL                |
-| `POSTGRES_DB`      | db      | Nome do banco                      |
-| `DATABASE_URL`     | app     | URL de conexão (host: `db`)        |
+| Variável            | Serviço | Descrição                       |
+|--------------------|---------|---------------------------------|
+| `VIRTUAL_HOST`     | app     | Hostname para o reverse proxy   |
+| `VIRTUAL_PORT`     | app     | Porta interna do app (ex.: 3000)|
+| `LETSENCRYPT_HOST` | app     | Hostname para certificado HTTPS |
+| `POSTGRES_USER`    | db      | Usuário do PostgreSQL           |
+| `POSTGRES_PASSWORD`| db      | Senha do PostgreSQL             |
+| `POSTGRES_DB`      | db      | Nome do banco                   |
+| `DATABASE_URL`     | app     | URL de conexão (host: `db`)     |
 
 ## Desenvolvimento local (sem Docker)
 

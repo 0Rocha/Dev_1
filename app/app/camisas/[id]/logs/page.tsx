@@ -4,7 +4,7 @@ import styles from './logs.module.css';
 
 type LogItem = {
   id: number;
-  pedido_id: number;
+  camisa_id: number;
   acao: string;
   usuario_nome?: string | null;
   alterado_em: string;
@@ -29,14 +29,14 @@ async function getLogs(id: string): Promise<LogItem[]> {
       `
       SELECT
         id,
-        pedido_id,
+        camisa_id,
         acao,
         usuario_nome,
         alterado_em,
         antes,
         depois
-      FROM pedidos_log
-      WHERE pedido_id = $1
+      FROM camisas_log
+      WHERE camisa_id = $1
       ORDER BY alterado_em DESC
       `,
       [id]
@@ -114,7 +114,7 @@ export default async function Page({
             <h1 className={styles.title}>Histórico da camisa #{id}</h1>
           </div>
 
-          <Link href="/pedidos" className={styles.backBtn}>
+          <Link href="/camisas" className={styles.backBtn}>
             Voltar
           </Link>
         </div>

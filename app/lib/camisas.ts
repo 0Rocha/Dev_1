@@ -1,4 +1,4 @@
-// app/lib/pedidos.ts
+// app/lib/camisas.ts
 export type Order = {
   id: number;
   rastreio?: string;
@@ -12,7 +12,7 @@ export type Order = {
   created_at?: string;
 };
 
-export const PEDIDOS_STORAGE = "pedidos_v1"; // se quiser manter, opcional
+export const CAMISAS_STORAGE = "camisas_v1";
 
 // fallback vazio (não usado no server, apenas para dev)
 export const ORDERS: Order[] = [];

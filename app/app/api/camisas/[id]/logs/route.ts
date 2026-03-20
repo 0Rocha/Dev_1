@@ -13,15 +13,15 @@ export async function GET(
       `
       SELECT
         id,
-        pedido_id,
+        camisa_id,
         acao,
         usuario_id,
         usuario_nome,
         alterado_em,
         antes,
         depois
-      FROM pedidos_log
-      WHERE pedido_id = $1
+      FROM camisas_log
+      WHERE camisa_id = $1
       ORDER BY alterado_em DESC
       `,
       [id]
@@ -31,7 +31,7 @@ export async function GET(
       headers: { "Content-Type": "application/json" },
     });
   } catch (err: any) {
-    console.error("GET /api/pedidos/[id]/log:", err);
+    console.error("GET /api/camisas/[id]/log:", err);
 
     return new Response(
       JSON.stringify({ error: err?.message ?? "Erro ao buscar log" }),

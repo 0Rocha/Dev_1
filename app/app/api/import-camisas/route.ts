@@ -5,11 +5,11 @@ import { pool } from "@/lib/db";
 
 function normalizeKey(value: string) {
   return String(value || "")
-    .replace(/^\uFEFF/, "") // remove BOM
+    .replace(/^\uFEFF/, "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, ""); // remove acentos
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function getField(row: Record<string, any>, aliases: string[]) {
@@ -28,14 +28,11 @@ export async function POST(req: Request) {
     const file = formData.get("file");
 
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        { ok: false, error: "Arquivo não enviado." },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Arquivo não enviado." }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const pedidos: Record<string, any>[] = [];
+    const camisas: Record<string, any>[] = [];
 
     await new Promise<void>((resolve, reject) => {
       Readable.from(buffer)
@@ -46,7 +43,7 @@ export async function POST(req: Request) {
             mapValues: ({ value }) => (typeof value === "string" ? value.trim() : value),
           })
         )
-        .on("data", (data) => pedidos.push(data))
+        .on("data", (data) => camisas.push(data))
         .on("end", resolve)
         .on("error", reject);
     });
@@ -55,17 +52,17 @@ export async function POST(req: Request) {
     let ignorados = 0;
     const erros: any[] = [];
 
-    for (let i = 0; i < pedidos.length; i++) {
-      const pedido = pedidos[i];
+    for (let i = 0; i < camisas.length; i++) {
+      const camisa = camisas[i];
 
-      const rastreio = getField(pedido, ["rastreio", "codigo_rastreio"]);
-      const usuario = getField(pedido, ["usuario", "login"]);
-      const nome = getField(pedido, ["nome", "cliente"]);
-      const cpf = getField(pedido, ["cpf"]);
-      const telefone = getField(pedido, ["telefone", "celular", "fone"]);
-      const tamanho = getField(pedido, ["tamanho"]);
-      const endereco = getField(pedido, ["endereco", "endereço"]);
-      const status = getField(pedido, ["status"]) || "Pendente";
+      const rastreio = getField(camisa, ["rastreio", "codigo_rastreio"]);
+      const usuario = getField(camisa, ["usuario", "login"]);
+      const nome = getField(camisa, ["nome", "cliente"]);
+      const cpf = getField(camisa, ["cpf"]);
+      const telefone = getField(camisa, ["telefone", "celular", "fone"]);
+      const tamanho = getField(camisa, ["tamanho"]);
+      const endereco = getField(camisa, ["endereco", "endereço"]);
+      const status = getField(camisa, ["status"]) || "Pendente";
 
       if (!nome) {
         ignorados++;
@@ -74,7 +71,7 @@ export async function POST(req: Request) {
 
       try {
         await pool.query(
-          `INSERT INTO pedidos
+          `INSERT INTO camisas
           (rastreio, usuario, nome, cpf, telefone, tamanho, endereco, status)
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
           [rastreio, usuario, nome, cpf, telefone, tamanho, endereco, status]
@@ -95,16 +92,12 @@ export async function POST(req: Request) {
       ok: true,
       importados,
       ignorados,
-      total: pedidos.length,
+      total: camisas.length,
       erros,
-      exemploPrimeiraLinha: pedidos[0] ?? null,
+      exemploPrimeiraLinha: camisas[0] ?? null,
     });
   } catch (error: any) {
     console.error("Erro importando CSV:", error);
-
-    return NextResponse.json(
-      { ok: false, error: error?.message || String(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: error?.message || String(error) }, { status: 500 });
   }
 }

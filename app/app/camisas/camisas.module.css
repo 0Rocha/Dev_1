@@ -1,22 +1,22 @@
-.page {
-  --pedidos-bg: #eef1f4;
-  --pedidos-panel: rgba(255, 255, 255, 0.9);
-  --pedidos-line: rgba(15, 23, 42, 0.08);
-  --pedidos-text: #111827;
-  --pedidos-muted: #6b7280;
-  --pedidos-accent-deep: #1f2937;
-  --pedidos-green: #374151;
-  --pedidos-green-soft: #e5e7eb;
-  --pedidos-red: #111827;
-  --pedidos-red-soft: #f3f4f6;
-  --pedidos-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+﻿.page {
+  --camisas-bg: #eef1f4;
+  --camisas-panel: rgba(255, 255, 255, 0.9);
+  --camisas-line: rgba(15, 23, 42, 0.08);
+  --camisas-text: #111827;
+  --camisas-muted: #6b7280;
+  --camisas-accent-deep: #1f2937;
+  --camisas-green: #374151;
+  --camisas-green-soft: #e5e7eb;
+  --camisas-red: #111827;
+  --camisas-red-soft: #f3f4f6;
+  --camisas-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
   min-height: 100vh;
   display: flex;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.96), transparent 24%),
     radial-gradient(circle at top right, rgba(226, 232, 240, 0.6), transparent 22%),
-    linear-gradient(180deg, #f8fafc 0%, var(--pedidos-bg) 45%, #e5e7eb 100%);
-  color: var(--pedidos-text);
+    linear-gradient(180deg, #f8fafc 0%, var(--camisas-bg) 45%, #e5e7eb 100%);
+  color: var(--camisas-text);
 }
 
 .sidebar {
@@ -54,8 +54,8 @@
   border-radius: 25px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(243, 244, 246, 0.9)),
-    var(--pedidos-panel);
-  box-shadow: var(--pedidos-shadow);
+    var(--camisas-panel);
+  box-shadow: var(--camisas-shadow);
 }
 
 .hero::before {
@@ -86,7 +86,7 @@
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--pedidos-accent-deep);
+  color: var(--camisas-accent-deep);
   background: rgba(255, 255, 255, 0.56);
 }
 
@@ -103,7 +103,7 @@
   max-width: 52ch;
   font-size: 14px;
   line-height: 1.7;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
 }
 
 .heroActions {
@@ -137,7 +137,7 @@
 }
 
 .heroChip strong {
-  color: var(--pedidos-text);
+  color: var(--camisas-text);
 }
 
 .primaryBtn,
@@ -233,7 +233,7 @@
   z-index: 1;
   display: block;
   margin-top: 9px;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
   font-size: 13px;
 }
 
@@ -245,7 +245,7 @@
   flex-wrap: wrap;
   padding: 16px 18px;
   margin-bottom: 14px;
-  border: 1px solid var(--pedidos-line);
+  border: 1px solid var(--camisas-line);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(10px);
@@ -313,7 +313,7 @@
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 27px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(243, 244, 246, 0.92));
-  box-shadow: var(--pedidos-shadow);
+  box-shadow: var(--camisas-shadow);
 }
 
 .tableWrapper {
@@ -452,7 +452,7 @@
 
 .trackingHint {
   font-size: 12px;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
 }
 
 .userCell,
@@ -472,7 +472,7 @@
   display: block;
   margin-top: 4px;
   font-size: 12px;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
 }
 
 .addressCell {
@@ -497,13 +497,13 @@
 }
 
 .statusPendente {
-  color: var(--pedidos-red);
-  background: var(--pedidos-red-soft);
+  color: var(--camisas-red);
+  background: var(--camisas-red-soft);
 }
 
 .statusEnviado {
-  color: var(--pedidos-green);
-  background: var(--pedidos-green-soft);
+  color: var(--camisas-green);
+  background: var(--camisas-green-soft);
 }
 
 .statusDefault {
@@ -514,7 +514,7 @@
 .emptyState {
   padding: 50px 18px;
   text-align: center;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
 }
 
 .viewBtn,
@@ -617,7 +617,7 @@
 
 .modalTitleBlock p {
   margin: 7px 0 0;
-  color: var(--pedidos-muted);
+  color: var(--camisas-muted);
   font-size: 13px;
 }
 
@@ -799,3 +799,4 @@ textarea.field {
     justify-content: center;
   }
 }
+

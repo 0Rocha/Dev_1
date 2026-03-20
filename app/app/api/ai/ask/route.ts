@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { pool } from "@/lib/db";
 
@@ -20,6 +20,13 @@ type ShirtRow = {
 type SummaryRow = {
   status: string | null;
   total: string;
+};
+
+type SizeMatchRow = {
+  id: number;
+  nome: string | null;
+  usuario: string | null;
+  tamanho: string | null;
 };
 
 function normalizeQuestion(input: unknown) {
@@ -72,17 +79,184 @@ function detectStatusTerms(question: string) {
     .map(([status]) => status);
 }
 
-function detectExplicitId(question: string) {
+function detectNegatedStatusTerms(question: string) {
   const normalizedQuestion = normalizeText(question);
-  const match =
-    normalizedQuestion.match(/\bid\s*(?:numero|n|num)?\s*(\d+)\b/) ||
-    normalizedQuestion.match(/\bcamisa\s*(\d+)\b/) ||
-    normalizedQuestion.match(/\bpedido\s*(\d+)\b/);
+  const statusAliases: Record<string, string[]> = {
+    pendente: ["pendente", "pendentes"],
+    enviado: ["enviado", "enviados", "enviada", "enviadas"],
+    entregue: ["entregue", "entregues"],
+    cancelado: ["cancelado", "cancelados", "cancelada", "canceladas"],
+  };
 
-  if (!match) return null;
+  return Object.entries(statusAliases)
+    .filter(([, aliases]) =>
+      aliases.some((alias) =>
+        new RegExp(
+          `\\b(?:nao|não|sem)(?:\\s+(?:esta|estao|está|estão|foi|foram|ta|tá|com|status))*\\s+${alias}\\b`
+        ).test(normalizedQuestion)
+      )
+    )
+    .map(([status]) => status);
+}
 
-  const parsed = Number(match[1]);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+function detectExplicitIds(question: string) {
+  const normalizedQuestion = normalizeText(question);
+
+  const mentionsEntity =
+    /\bid\b/.test(normalizedQuestion) ||
+    /\bcamisa\b/.test(normalizedQuestion);
+
+  if (!mentionsEntity) return [];
+
+  return Array.from(
+    new Set(
+      (normalizedQuestion.match(/\b\d+\b/g) ?? [])
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value > 0)
+    )
+  ).slice(0, 20);
+}
+
+function detectLargestShirtQuestion(question: string) {
+  const normalizedQuestion = normalizeText(question);
+
+  const asksForLargest =
+    normalizedQuestion.includes("maior camisa") ||
+    normalizedQuestion.includes("maiores camisas") ||
+    normalizedQuestion.includes("camisa maior") ||
+    (normalizedQuestion.includes("maior") && normalizedQuestion.includes("tamanho")) ||
+    (normalizedQuestion.includes("maiores") && normalizedQuestion.includes("camisa")) ||
+    (normalizedQuestion.includes("maiores") && normalizedQuestion.includes("tamanho"));
+
+  return asksForLargest && /\bcamisa(s)?\b/.test(normalizedQuestion);
+}
+
+function detectSmallestShirtQuestion(question: string) {
+  const normalizedQuestion = normalizeText(question);
+
+  const asksForSmallest =
+    normalizedQuestion.includes("menor camisa") ||
+    normalizedQuestion.includes("menores camisas") ||
+    normalizedQuestion.includes("camisa menor") ||
+    (normalizedQuestion.includes("menor") && normalizedQuestion.includes("tamanho")) ||
+    (normalizedQuestion.includes("menores") && normalizedQuestion.includes("camisa")) ||
+    (normalizedQuestion.includes("menores") && normalizedQuestion.includes("tamanho"));
+
+  return asksForSmallest && /\bcamisa(s)?\b/.test(normalizedQuestion);
+}
+
+function getSizeRank(value: string | null | undefined) {
+  const normalized = normalizeText(value).replace(/\s+/g, "");
+
+  if (!normalized) return null;
+
+  const directRanks: Record<string, number> = {
+    pp: 1,
+    p: 2,
+    m: 3,
+    g: 4,
+    gg: 5,
+    xg: 6,
+    xgg: 7,
+    xxg: 7,
+    xxgg: 8,
+    xxxg: 8,
+    xxxgg: 9,
+    exg: 7,
+    egg: 6,
+    exgg: 8,
+    g1: 6,
+    g2: 7,
+    g3: 8,
+    g4: 9,
+    g5: 10,
+    g6: 11,
+    "1g": 6,
+    "2g": 7,
+    "3g": 8,
+    "4g": 9,
+    "5g": 10,
+    "6g": 11,
+  };
+
+  if (normalized in directRanks) {
+    return directRanks[normalized];
+  }
+
+  const repeatedG = normalized.match(/^x(g+)$/);
+  if (repeatedG) {
+    return 4 + repeatedG[1].length;
+  }
+
+  const numberedSize = normalized.match(/^(\d+)g$/) ?? normalized.match(/^g(\d+)$/);
+  if (numberedSize) {
+    return 5 + Number(numberedSize[1]);
+  }
+
+  return null;
+}
+
+function getRankedSizeRows(rows: SizeMatchRow[]) {
+  return rows
+    .map((row) => ({
+      ...row,
+      rank: getSizeRank(row.tamanho),
+      tamanhoLabel: String(row.tamanho ?? "").trim(),
+    }))
+    .filter((row): row is SizeMatchRow & { rank: number; tamanhoLabel: string } => {
+      return row.rank !== null && row.tamanhoLabel.length > 0;
+    });
+}
+
+function formatExtremeShirtAnswer(rows: SizeMatchRow[], mode: "largest" | "smallest") {
+  const rankedRows = getRankedSizeRows(rows);
+
+  if (rankedRows.length === 0) {
+    return mode === "largest"
+      ? "Nao foi possivel identificar o maior tamanho de camisa com os dados cadastrados."
+      : "Nao foi possivel identificar o menor tamanho de camisa com os dados cadastrados.";
+  }
+
+  const targetRank =
+    mode === "largest"
+      ? rankedRows.reduce((max, row) => Math.max(max, row.rank), rankedRows[0].rank)
+      : rankedRows.reduce((min, row) => Math.min(min, row.rank), rankedRows[0].rank);
+  const targetRows = rankedRows.filter((row) => row.rank === targetRank);
+  const targetSize = targetRows[0].tamanhoLabel;
+  const article = mode === "largest" ? "maior" : "menor";
+  const phrase = mode === "largest" ? "maior camisa" : "menor camisa";
+
+  if (targetRows.length === 1) {
+    const row = targetRows[0];
+    const owner = row.nome || row.usuario;
+    return owner
+      ? `A ${phrase} encontrada e a de ID ${row.id}, tamanho ${targetSize}, vinculada a ${owner}.`
+      : `A ${phrase} encontrada e a de ID ${row.id}, tamanho ${targetSize}.`;
+  }
+
+  const previewRows = targetRows.slice(0, 10);
+  const remaining = targetRows.length - previewRows.length;
+  const ids = previewRows.map((row) => row.id).join(", ");
+
+  const lines = [
+    `Nao existe apenas uma ${article} camisa.`,
+    `O ${mode === "largest" ? "maior" : "menor"} tamanho encontrado e ${targetSize}, com ${targetRows.length} camisa${targetRows.length === 1 ? "" : "s"} nesse tamanho.`,
+    `IDs: ${ids}.`,
+  ];
+
+  if (remaining > 0) {
+    lines.push(`Existem mais ${remaining} camisa${remaining === 1 ? "" : "s"} com esse mesmo tamanho alem das listadas.`);
+  }
+
+  return lines.join(" ");
+}
+
+function formatLargestShirtAnswer(rows: SizeMatchRow[]) {
+  return formatExtremeShirtAnswer(rows, "largest");
+}
+
+function formatSmallestShirtAnswer(rows: SizeMatchRow[]) {
+  return formatExtremeShirtAnswer(rows, "smallest");
 }
 
 function compactRow(row: ShirtRow) {
@@ -140,14 +314,50 @@ function formatStatusAnswer(status: string, rows: ShirtRow[], total: number) {
   return lines.join("\n");
 }
 
+function formatNotStatusAnswer(status: string, rows: ShirtRow[]) {
+  const previewLimit = 10;
+  const previewRows = rows.slice(0, previewLimit);
+  const remaining = Math.max(rows.length - previewRows.length, 0);
+  const titleStatus = status.charAt(0).toUpperCase() + status.slice(1);
+
+  if (rows.length === 0) {
+    return `Nao encontrei camisas fora do status ${titleStatus}.`;
+  }
+
+  const lines = [
+    `Encontrei ${rows.length} camisa${rows.length === 1 ? "" : "s"} que nao est${rows.length === 1 ? "a" : "ao"} com status ${titleStatus}.`,
+    "",
+    `Mostrando ${previewRows.length} registro${previewRows.length === 1 ? "" : "s"}:`,
+    ...previewRows.map((row) => {
+      const parts = [
+        `ID ${row.id}`,
+        row.nome ? `usuario ${row.nome}` : null,
+        row.usuario ? `login ${row.usuario}` : null,
+        row.status ? `status ${row.status}` : null,
+      ].filter(Boolean);
+
+      return parts.join(" | ");
+    }),
+  ];
+
+  if (remaining > 0) {
+    lines.push("");
+    lines.push(`Existem mais ${remaining} registro${remaining === 1 ? "" : "s"} fora desse status alem dos mostrados acima.`);
+  }
+
+  return lines.join("\n");
+}
+
 function buildContext(question: string, rows: ShirtRow[], summaryRows: SummaryRow[]) {
   const tokens = tokenize(question);
   const statusTerms = detectStatusTerms(question);
-  const explicitId = detectExplicitId(question);
+  const explicitIds = detectExplicitIds(question);
 
   const idRows =
-    explicitId !== null
-      ? rows.filter((row) => row.id === explicitId).slice(0, 1)
+    explicitIds.length > 0
+      ? explicitIds
+          .map((id) => rows.find((row) => row.id === id))
+          .filter((row): row is ShirtRow => Boolean(row))
       : [];
 
   const statusRows =
@@ -174,7 +384,9 @@ function buildContext(question: string, rows: ShirtRow[], summaryRows: SummaryRo
   const totalRows = summaryRows.reduce((sum, row) => sum + Number(row.total ?? 0), 0);
   const contextMode =
     idRows.length > 0
-      ? "registro localizado por ID da pergunta"
+      ? idRows.length === 1
+        ? "registro localizado por ID da pergunta"
+        : "registros localizados pelos IDs da pergunta"
       : statusRows.length > 0
       ? "registros filtrados por status da pergunta"
       : relevantRows.length > 0
@@ -218,21 +430,38 @@ export async function POST(req: Request) {
     const [rowsResult, summaryResult] = await Promise.all([
       pool.query<ShirtRow>(
         `SELECT id, rastreio, usuario, nome, cpf, telefone, tamanho, endereco, status, created_at
-         FROM pedidos
+         FROM camisas
          ORDER BY id DESC
          LIMIT 200`
       ),
       pool.query<SummaryRow>(
         `SELECT status, COUNT(*)::text AS total
-         FROM pedidos
+         FROM camisas
          GROUP BY status
          ORDER BY COUNT(*) DESC, status ASC`
       ),
     ]);
 
     const statusTerms = detectStatusTerms(question);
+    const negatedStatusTerms = detectNegatedStatusTerms(question);
+    const asksForLargestShirt = detectLargestShirtQuestion(question);
+    const asksForSmallestShirt = detectSmallestShirtQuestion(question);
 
-    if (statusTerms.length === 1 && detectExplicitId(question) === null) {
+    if (negatedStatusTerms.length === 1 && detectExplicitIds(question).length === 0) {
+      const excludedStatus = negatedStatusTerms[0];
+      const matchingRows = rowsResult.rows.filter(
+        (row) => normalizeText(row.status) !== excludedStatus
+      );
+
+      return NextResponse.json({
+        ok: true,
+        answer: formatNotStatusAnswer(excludedStatus, matchingRows),
+        usedRows: Math.min(matchingRows.length, 10),
+        contextMode: "resposta direta por status negado",
+      });
+    }
+
+    if (statusTerms.length === 1 && detectExplicitIds(question).length === 0) {
       const targetStatus = statusTerms[0];
       const matchingRows = rowsResult.rows.filter(
         (row) => normalizeText(row.status) === targetStatus
@@ -244,6 +473,26 @@ export async function POST(req: Request) {
         answer: formatStatusAnswer(targetStatus, matchingRows, total),
         usedRows: Math.min(matchingRows.length, 10),
         contextMode: "resposta direta por status",
+      });
+    }
+
+    if (asksForLargestShirt || asksForSmallestShirt) {
+      const sizeRowsResult = await pool.query<SizeMatchRow>(
+        `SELECT id, nome, usuario, tamanho
+         FROM camisas
+         WHERE tamanho IS NOT NULL
+           AND NULLIF(TRIM(tamanho), '') IS NOT NULL`
+      );
+
+      return NextResponse.json({
+        ok: true,
+        answer: asksForLargestShirt
+          ? formatLargestShirtAnswer(sizeRowsResult.rows)
+          : formatSmallestShirtAnswer(sizeRowsResult.rows),
+        usedRows: sizeRowsResult.rows.length,
+        contextMode: asksForLargestShirt
+          ? "resposta direta por maior tamanho"
+          : "resposta direta por menor tamanho",
       });
     }
 
@@ -300,3 +549,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
+
