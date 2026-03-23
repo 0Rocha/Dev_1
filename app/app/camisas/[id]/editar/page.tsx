@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Funnel_Sans } from 'next/font/google';
 import SidebarAdmin from '../../../components/SidebarAdmin';
-import styles from '../../camisas.module.css';
+import sharedStyles from '../../camisas.module.css';
+import styles from './editar.module.css';
 
 const fn = Funnel_Sans({ subsets: ['latin'], weight: '400' });
 
@@ -42,36 +43,37 @@ export default function EditarCamisaPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  const localAuth = localStorage.getItem('auth');
-  const sessionAuth = sessionStorage.getItem('auth');
+    const localAuth = localStorage.getItem('auth');
+    const sessionAuth = sessionStorage.getItem('auth');
 
-  const localUser =
-    localStorage.getItem('usuarioLogado') || localStorage.getItem('user');
-  const sessionUser =
-    sessionStorage.getItem('usuarioLogado') || sessionStorage.getItem('user');
+    const localUser =
+      localStorage.getItem('usuarioLogado') || localStorage.getItem('user');
+    const sessionUser =
+      sessionStorage.getItem('usuarioLogado') || sessionStorage.getItem('user');
 
-  if (
-    (localAuth !== 'true' && sessionAuth !== 'true') ||
-    (!localUser && !sessionUser)
-  ) {
-    localStorage.removeItem('auth');
-    localStorage.removeItem('user');
-    localStorage.removeItem('usuarioLogado');
-    sessionStorage.removeItem('auth');
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('usuarioLogado');
+    if (
+      (localAuth !== 'true' && sessionAuth !== 'true') ||
+      (!localUser && !sessionUser)
+    ) {
+      localStorage.removeItem('auth');
+      localStorage.removeItem('user');
+      localStorage.removeItem('usuarioLogado');
+      sessionStorage.removeItem('auth');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('usuarioLogado');
 
-    router.push('/');
-  }
-}, [router]);
+      router.push('/');
+    }
+  }, [router]);
 
   useEffect(() => {
     if (!id || Number.isNaN(id)) {
-      setError('ID inválido.');
+      setError('ID invÃ¡lido.');
       setLoading(false);
       return;
     }
@@ -85,13 +87,13 @@ export default function EditarCamisaPage() {
 
         const res = await fetch(`/api/camisas/${id}`, { signal: controller.signal });
 
-              if (!res.ok) {
-              const data = await res.json().catch(() => null);
-              throw new Error(data?.error ?? `Erro ao carregar camisa (${res.status})`);
-              }
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error ?? `Erro ao carregar camisa (${res.status})`);
+        }
 
-              const camisa = await res.json();
-              if (!active) return;
+        const camisa = await res.json();
+        if (!active) return;
 
         setForm({
           id: camisa.id,
@@ -122,80 +124,74 @@ export default function EditarCamisaPage() {
   }, [id]);
 
   function handleChange(
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) {
-    const { name, value } = e.target;
+    const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
 
-  setSaving(true);
-  setMessage(null);
-  setError(null);
+    setSaving(true);
+    setMessage(null);
+    setError(null);
 
-  try {
-    const usuarioLogadoNome =
-      localStorage.getItem('usuarioLogado') ||
-      sessionStorage.getItem('usuarioLogado') ||
-      localStorage.getItem('user') ||
-      sessionStorage.getItem('user');
+    try {
+      const usuarioLogadoNome =
+        localStorage.getItem('usuarioLogado') ||
+        sessionStorage.getItem('usuarioLogado') ||
+        localStorage.getItem('user') ||
+        sessionStorage.getItem('user');
 
-    if (!usuarioLogadoNome) {
-      router.push('/');
-      throw new Error('Sessão inválida. Faça login novamente.');
+      if (!usuarioLogadoNome) {
+        router.push('/');
+        throw new Error('SessÃ£o invÃ¡lida. FaÃ§a login novamente.');
+      }
+
+      const payload = {
+        rastreio: form.rastreio ?? '',
+        usuario: form.usuario ?? '',
+        nome: form.nome ?? '',
+        cpf: form.cpf ?? '',
+        telefone: form.telefone ?? '',
+        tamanho: form.tamanho ?? '',
+        endereco: form.endereco ?? '',
+        status: form.status ?? '',
+        usuarioLogadoNome,
+      };
+
+      const res = await fetch(`/api/camisas/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error ?? `Erro ao salvar (${res.status})`);
+      }
+
+      setMessage('Camisa atualizada com sucesso.');
+
+      setTimeout(() => {
+        router.push('/camisas/buscar');
+      }, 800);
+    } catch (err: any) {
+      console.error('Erro ao salvar camisa:', err);
+      setError(err?.message ?? 'Erro ao salvar camisa.');
+    } finally {
+      setSaving(false);
     }
-
-    const payload = {
-      rastreio: form.rastreio ?? '',
-      usuario: form.usuario ?? '',
-      nome: form.nome ?? '',
-      cpf: form.cpf ?? '',
-      telefone: form.telefone ?? '',
-      tamanho: form.tamanho ?? '',
-      endereco: form.endereco ?? '',
-      status: form.status ?? '',
-      usuarioLogadoNome,
-    };
-
-    const res = await fetch(`/api/camisas/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      throw new Error(data?.error ?? `Erro ao salvar (${res.status})`);
-    }
-
-    setMessage('Camisa atualizada com sucesso.');
-
-    setTimeout(() => {
-      router.push('/camisas/buscar');
-    }, 800);
-  } catch (err: any) {
-    console.error('Erro ao salvar camisa:', err);
-    setError(err?.message ?? 'Erro ao salvar camisa.');
-  } finally {
-    setSaving(false);
   }
-}
 
   async function handleDelete() {
-    const confirmed = window.confirm(
-      `Tem certeza que deseja excluir a camisa #${id}?`
-    );
-
-    if (!confirmed) return;
-
     setDeleting(true);
     setMessage(null);
     setError(null);
@@ -209,13 +205,14 @@ export default function EditarCamisaPage() {
         body: JSON.stringify({ id }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
       if (!res.ok) {
         throw new Error(data?.error ?? `Erro ao excluir (${res.status})`);
       }
 
-      setMessage('Camisa excluída com sucesso.');
+      setConfirmOpen(false);
+      setMessage('Camisa excluÃ­da com sucesso.');
 
       setTimeout(() => {
         router.push('/camisas/buscar');
@@ -228,215 +225,211 @@ export default function EditarCamisaPage() {
     }
   }
 
+  function openDeleteConfirm() {
+    setConfirmOpen(true);
+  }
+
+  function closeDeleteConfirm() {
+    if (deleting) return;
+    setConfirmOpen(false);
+  }
+
   return (
-    <main className={`${fn.className} ${styles.page}`}>
-      <aside className={styles.sidebar}>
+    <main className={`${fn.className} ${sharedStyles.page}`}>
+      <aside className={sharedStyles.sidebar}>
         <SidebarAdmin />
       </aside>
 
-      <section className={styles.content}>
-        <header className={styles.header}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            <div>
-              <p className={styles.breadcrumb}>Camisas / Editar</p>
-              <h1 className={styles.title}>Editar camisa #{id}</h1>
-            </div>
+      <section className={sharedStyles.content}>
+        <header className={styles.hero}>
+          <div>
+            <p className={sharedStyles.breadcrumb}>Camisas / Editar</p>
+            <h1 className={sharedStyles.title}>Editar camisa #{id}</h1>
+            <p className={styles.subtitle}>
+              Atualize os dados principais da camisa em um formulÃ¡rio adaptado para
+              desktop e celular.
+            </p>
+          </div>
 
-            <div>
-              <Link
-                href="/camisas/buscar"
-                style={{
-                  display: 'inline-block',
-                  padding: '8px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  textDecoration: 'none',
-                  color: '#111',
-                }}
-              >
-                Voltar
-              </Link>
-            </div>
+          <div className={styles.heroActions}>
+            <Link href={`/camisas/${id}`} className={styles.secondaryLink}>
+              Visualizar
+            </Link>
+            <Link href="/camisas/buscar" className={styles.secondaryLink}>
+              Voltar
+            </Link>
           </div>
         </header>
 
-        <div style={{ marginTop: 16 }}>
-          {loading && <p>Carregando camisa...</p>}
-          {error && <p style={{ color: 'crimson' }}>Erro: {error}</p>}
-          {message && <p style={{ color: 'green' }}>{message}</p>}
+        <div className={styles.noticeStack}>
+          {loading ? <div className={styles.infoBox}>Carregando camisa...</div> : null}
+          {error ? <div className={styles.errorBox}>Erro: {error}</div> : null}
+          {message ? <div className={styles.successBox}>{message}</div> : null}
         </div>
 
-        {!loading && !error && (
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              display: 'grid',
-              gap: 16,
-              marginTop: 20,
-              maxWidth: 900,
-            }}
-          >
-            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
-              <div>
-                <label htmlFor="rastreio">Rastreio</label>
+        {!loading && !error ? (
+          <form className={styles.formCard} onSubmit={handleSubmit}>
+            <div className={styles.formGrid}>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>Rastreio</span>
                 <input
                   id="rastreio"
                   name="rastreio"
                   value={form.rastreio ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 />
-              </div>
+              </label>
 
-              <div>
-                <label htmlFor="usuario">Usuário</label>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>UsuÃ¡rio</span>
                 <input
                   id="usuario"
                   name="usuario"
                   value={form.usuario ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 />
-              </div>
+              </label>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="nome">Nome</label>
+              <label className={`${styles.fieldWrap} ${styles.fieldWrapFull}`}>
+                <span className={styles.label}>Nome</span>
                 <input
                   id="nome"
                   name="nome"
                   value={form.nome ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                   required
                 />
-              </div>
+              </label>
 
-              <div>
-                <label htmlFor="cpf">CPF</label>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>CPF</span>
                 <input
                   id="cpf"
                   name="cpf"
                   value={form.cpf ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 />
-              </div>
+              </label>
 
-              <div>
-                <label htmlFor="telefone">Telefone</label>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>Telefone</span>
                 <input
                   id="telefone"
                   name="telefone"
                   value={form.telefone ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 />
-              </div>
+              </label>
 
-              <div>
-                <label htmlFor="tamanho">Tamanho</label>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>Tamanho</span>
                 <input
                   id="tamanho"
                   name="tamanho"
                   value={form.tamanho ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 />
-              </div>
+              </label>
 
-              <div>
-                <label htmlFor="status">Status</label>
+              <label className={styles.fieldWrap}>
+                <span className={styles.label}>Status</span>
                 <select
                   id="status"
                   name="status"
                   value={form.status ?? ''}
                   onChange={handleChange}
-                  style={inputStyle}
+                  className={styles.field}
                 >
-                  
                   <option value="Pendente">Pendente</option>
                   <option value="Enviado">Enviado</option>
-                  
                 </select>
-              </div>
+              </label>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label htmlFor="endereco">Endereço</label>
+              <label className={`${styles.fieldWrap} ${styles.fieldWrapFull}`}>
+                <span className={styles.label}>EndereÃ§o</span>
                 <textarea
                   id="endereco"
                   name="endereco"
                   value={form.endereco ?? ''}
                   onChange={handleChange}
                   rows={5}
-                  style={{
-                    ...inputStyle,
-                    resize: 'vertical',
-                    minHeight: 120,
-                  }}
+                  className={`${styles.field} ${styles.textarea}`}
                 />
-              </div>
+              </label>
             </div>
 
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div className={styles.actionRow}>
               <button
                 type="submit"
                 disabled={saving || deleting}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: saving ? '#f0f0f0' : '#fff',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                }}
+                className={styles.primaryBtn}
               >
-                {saving ? 'Salvando...' : 'Salvar alterações'}
+                {saving ? 'Salvando...' : 'Salvar alteraÃ§Ãµes'}
+              </button>
+
+              <button
+                type="button"
+                onClick={openDeleteConfirm}
+                disabled={saving || deleting}
+                className={styles.deleteBtn}
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+
+              <Link href="/camisas/buscar" className={styles.secondaryLinkAction}>
+                Cancelar
+              </Link>
+            </div>
+          </form>
+        ) : null}
+      </section>
+
+      {confirmOpen ? (
+        <div className={styles.modalOverlay} onClick={closeDeleteConfirm}>
+          <div
+            className={styles.confirmModal}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-confirm-title"
+          >
+            <p className={styles.confirmEyebrow}>Confirmar exclusÃ£o</p>
+            <h2 id="delete-confirm-title" className={styles.confirmTitle}>
+              Excluir camisa #{id}?
+            </h2>
+            <p className={styles.confirmText}>
+              Tem certeza que deseja excluir esta camisa? Essa aÃ§Ã£o nÃ£o pode ser
+              desfeita.
+            </p>
+
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                className={styles.secondaryLinkAction}
+                disabled={deleting}
+              >
+                Cancelar
               </button>
 
               <button
                 type="button"
                 onClick={handleDelete}
-                disabled={saving || deleting}
-                style={{
-                  padding: '10px 16px',
-                  borderRadius: 6,
-                  border: '1px solid #d66',
-                  background: deleting ? '#f8eaea' : '#fff',
-                  color: '#b00020',
-                  cursor: deleting ? 'not-allowed' : 'pointer',
-                }}
+                className={styles.deleteBtn}
+                disabled={deleting}
               >
-                {deleting ? 'Excluindo...' : 'Excluir'}
+                {deleting ? 'Excluindo...' : 'Excluir agora'}
               </button>
-
-              <Link
-                href="/camisas/buscar"
-                style={{
-                  display: 'inline-block',
-                  padding: '10px 16px',
-                  borderRadius: 6,
-                  border: '1px solid #ccc',
-                  background: '#fff',
-                  textDecoration: 'none',
-                  color: '#111',
-                }}
-              >
-                Cancelar
-              </Link>
             </div>
-          </form>
-        )}
-      </section>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  marginTop: 6,
-  padding: 10,
-  borderRadius: 6,
-  border: '1px solid #ccc',
-  fontSize: 14,
-  boxSizing: 'border-box',
-};

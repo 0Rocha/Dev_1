@@ -63,6 +63,8 @@ export default function Camisas() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState<Partial<Order>>({});
+  const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [formMessageType, setFormMessageType] = useState<'error' | 'success' | null>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -153,7 +155,9 @@ export default function Camisas() {
     });
 
     if (!res.ok) {
-      throw new Error('Erro ao criar camisa');
+      const errBody = await res.json().catch(() => null);
+      const msg = errBody?.error || `Erro ao criar camisa (${res.status})`;
+      throw new Error(msg);
     }
 
     return res.json();
@@ -252,6 +256,14 @@ async function updateOrder(id: number, payload: Partial<Order>) {
     return `${text.slice(0, 7)}....`;
   }
 
+  function getStatusClass(status?: string) {
+    const normalized = (status || '').toLowerCase();
+
+    if (normalized === 'pendente') return styles.statusPendente;
+    if (normalized === 'enviado') return styles.statusEnviado;
+    return styles.statusDefault;
+  }
+
   const sorted = useMemo(() => {
     const list = [...orders];
 
@@ -343,6 +355,8 @@ async function updateOrder(id: number, payload: Partial<Order>) {
     const o = orders.find((x) => x.id === id);
     if (!o) return;
     setForm({ ...o });
+    setFormMessage(null);
+    setFormMessageType(null);
     setEditingId(id);
     setIsCreating(false);
   };
@@ -358,6 +372,8 @@ async function updateOrder(id: number, payload: Partial<Order>) {
       endereco: '',
       status: 'Pendente',
     });
+    setFormMessage(null);
+    setFormMessageType(null);
     setIsCreating(true);
     setEditingId(null);
   };
@@ -366,13 +382,25 @@ async function updateOrder(id: number, payload: Partial<Order>) {
     setEditingId(null);
     setIsCreating(false);
     setForm({});
+    setFormMessage(null);
+    setFormMessageType(null);
   };
 
   const save = async () => {
     if (!form.usuario || String(form.usuario).trim() === '') {
-      alert('O campo Usuário é obrigatório.');
+      setFormMessage('Preencha o usuario antes de salvar a camisa.');
+      setFormMessageType('error');
       return;
     }
+
+    if (!form.nome || String(form.nome).trim() === '') {
+      setFormMessage('Preencha o nome antes de salvar a camisa.');
+      setFormMessageType('error');
+      return;
+    }
+
+    setFormMessage(null);
+    setFormMessageType(null);
 
     const payload: Partial<Order> = {
       rastreio: form.rastreio?.trim() || undefined,
@@ -391,16 +419,21 @@ async function updateOrder(id: number, payload: Partial<Order>) {
         setOrders((prev) => [created, ...prev]);
         setIsCreating(false);
         setForm({});
+        setFormMessage(null);
+        setFormMessageType(null);
       } else {
         if (editingId == null) return;
         const updated: Order = await updateOrder(editingId, payload);
         setOrders((prev) => prev.map((o) => (o.id === editingId ? updated : o)));
         setEditingId(null);
         setForm({});
+        setFormMessage(null);
+        setFormMessageType(null);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Erro ao salvar camisa');
+      setFormMessage(err?.message || 'Nao foi possivel salvar a camisa. Tente novamente.');
+      setFormMessageType('error');
     }
   };
 
@@ -573,15 +606,7 @@ async function updateOrder(id: number, payload: Partial<Order>) {
                     </td>
 
                     <td>
-                      <span
-                        className={`${styles.status} ${
-                          (o.status || '').toLowerCase() === 'pendente'
-                            ? styles.statusPendente
-                            : (o.status || '').toLowerCase() === 'enviado'
-                            ? styles.statusEnviado
-                            : styles.statusDefault
-                        }`}
-                      >
+                      <span className={`${styles.status} ${getStatusClass(o.status)}`}>
                         {o.status ?? '-'}
                       </span>
                     </td>
@@ -623,6 +648,82 @@ async function updateOrder(id: number, payload: Partial<Order>) {
           </div>
         </div>
 
+        <div className={styles.mobileList}>
+          {paginatedOrders.length === 0 ? (
+            <div className={styles.mobileEmptyState}>Nenhuma camisa encontrada.</div>
+          ) : (
+            paginatedOrders.map((o) => (
+              <article key={`mobile-${o.id}`} className={styles.mobileCard}>
+                <div className={styles.mobileCardHeader}>
+                  <div className={styles.mobileCardTitleWrap}>
+                    <span className={styles.idCell}>{o.id}</span>
+                    <div>
+                      <strong className={styles.mobileCardTitle}>
+                        {o.nome ? previewText(o.nome, 28) : 'Sem nome'}
+                      </strong>
+                      <span className={styles.mobileCardSubtitle}>{o.usuario ?? 'Sem usuario'}</span>
+                    </div>
+                  </div>
+
+                  <span className={`${styles.status} ${getStatusClass(o.status)}`}>
+                    {o.status ?? '-'}
+                  </span>
+                </div>
+
+                <div className={styles.mobileDataGrid}>
+                  <div className={styles.mobileDataItem}>
+                    <span className={styles.mobileDataLabel}>Rastreio</span>
+                    <strong>{o.rastreio || 'Sem codigo'}</strong>
+                  </div>
+
+                  <div className={styles.mobileDataItem}>
+                    <span className={styles.mobileDataLabel}>CPF</span>
+                    <strong>{o.cpf || '-'}</strong>
+                  </div>
+
+                  <div className={styles.mobileDataItem}>
+                    <span className={styles.mobileDataLabel}>Telefone</span>
+                    <strong>{o.telefone || '-'}</strong>
+                  </div>
+
+                  <div className={styles.mobileDataItem}>
+                    <span className={styles.mobileDataLabel}>Tamanho</span>
+                    <strong>{o.tamanho || '-'}</strong>
+                  </div>
+
+                  <div className={`${styles.mobileDataItem} ${styles.mobileDataItemFull}`}>
+                    <span className={styles.mobileDataLabel}>Endereco</span>
+                    <strong>{o.endereco || '-'}</strong>
+                  </div>
+                </div>
+
+                <div className={styles.mobileActions}>
+                  <Link href={`/camisas/${o.id}`} className={styles.viewBtn}>
+                    Visualizar
+                  </Link>
+
+                  <Link
+                    href={`/camisas/${o.id}/logs`}
+                    className={styles.logBtn}
+                    title="Ver histÃ³rico"
+                  >
+                    <FontAwesomeIcon icon={faClockRotateLeft} />
+                  </Link>
+
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => edit(o.id)}
+                    title="Editar"
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
         {showModal && (
           <div
             className={styles.modalOverlay}
@@ -645,6 +746,16 @@ async function updateOrder(id: number, payload: Partial<Order>) {
                   {isCreating ? 'Novo registro' : 'Edição rápida'}
                 </span>
               </div>
+
+              {formMessage ? (
+                <div
+                  className={
+                    formMessageType === 'error' ? styles.formAlertError : styles.formAlertSuccess
+                  }
+                >
+                  {formMessage}
+                </div>
+              ) : null}
 
               <div className={styles.formGrid}>
                 <div className={styles.fieldWrap}>
@@ -741,3 +852,4 @@ async function updateOrder(id: number, payload: Partial<Order>) {
     </main>
   );
 }
+

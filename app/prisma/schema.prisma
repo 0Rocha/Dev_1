@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Camisa {
+  id        Int       @id @default(autoincrement())
+  rastreio  String?
+  usuario   String?
+  nome      String
+  cpf       String?
+  telefone  String?
+  tamanho   String?
+  endereco  String?
+  status    String?
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@map("camisas")
+}
+
+model CamisaLog {
+  id          Int       @id @default(autoincrement())
+  camisaId    Int       @map("camisa_id")
+  acao        String    @db.VarChar
+  usuarioId   Int?      @map("usuario_id")
+  usuarioNome String?   @map("usuario_nome") @db.VarChar
+  alteradoEm  DateTime  @default(now()) @map("alterado_em") @db.Timestamptz(6)
+  antes       Json?
+  depois      Json?
+
+  @@index([camisaId], map: "camisas_log_camisa_id_idx")
+  @@map("camisas_log")
+}

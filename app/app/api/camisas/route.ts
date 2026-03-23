@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+﻿import { pool } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -33,9 +33,19 @@ export async function POST(req: Request) {
     const raw = await req.json();
     const data = normalizeData(raw);
 
-    // Validação mínima
+    // Validacao minima
+    if (!data.usuario || typeof data.usuario !== "string" || data.usuario.trim() === "") {
+      return Response.json(
+        { error: "Preencha o usuario para criar a camisa." },
+        { status: 400 }
+      );
+    }
+
     if (!data.nome || typeof data.nome !== "string" || data.nome.trim() === "") {
-      return Response.json({ error: 'Campo "nome" obrigatório' }, { status: 400 });
+      return Response.json(
+        { error: "Preencha o nome para criar a camisa." },
+        { status: 400 }
+      );
     }
 
     const result = await pool.query(
@@ -45,7 +55,7 @@ export async function POST(req: Request) {
       RETURNING *`,
       [
         data.rastreio,
-        data.usuario,
+        data.usuario.trim(),
         data.nome.trim(),
         data.cpf,
         data.telefone,
@@ -68,7 +78,7 @@ export async function PUT(req: Request) {
     const raw = await req.json();
     const id = Number(raw?.id ?? raw?.ID ?? raw?.Id);
     if (!id || Number.isNaN(id)) {
-      return Response.json({ error: 'Campo "id" obrigatório e numérico' }, { status: 400 });
+      return Response.json({ error: 'Campo "id" obrigatorio e numerico' }, { status: 400 });
     }
 
     const data = normalizeData(raw);
@@ -87,7 +97,7 @@ export async function PUT(req: Request) {
     const setClauses: string[] = [];
     const values: any[] = [];
 
-    // função auxiliar: verifica se o cliente enviou o campo (em lower ou capitalized)
+    // Funcao auxiliar: verifica se o cliente enviou o campo em lower ou capitalized.
     const wasProvided = (field: string) => {
       const capitalized = field[0].toUpperCase() + field.slice(1);
       return (
@@ -97,24 +107,26 @@ export async function PUT(req: Request) {
     };
 
     allowedFields.forEach((field) => {
-      if (!wasProvided(field)) return; // só inclui se foi enviado no body
+      if (!wasProvided(field)) return;
       const val = (data as any)[field];
       setClauses.push(`${field} = $${values.length + 1}`);
       values.push(typeof val === "string" ? val.trim() : val);
     });
 
     if (setClauses.length === 0) {
-      return Response.json({ error: "Nenhum campo para atualizar" }, { status: 400 });
+      return Response.json(
+        { error: "Nenhum campo foi informado para atualizar a camisa." },
+        { status: 400 }
+      );
     }
 
-    // adiciona id como último parâmetro
     const sql = `UPDATE camisas SET ${setClauses.join(", ")} WHERE id = $${values.length + 1} RETURNING *`;
     values.push(id);
 
     const result = await pool.query(sql, values);
 
     if (result.rowCount === 0) {
-      return Response.json({ error: "Camisa não encontrada" }, { status: 404 });
+      return Response.json({ error: "Camisa nao encontrada" }, { status: 404 });
     }
 
     return Response.json(result.rows[0], { status: 200 });
@@ -130,13 +142,13 @@ export async function DELETE(req: Request) {
     const id = Number(body?.id);
 
     if (!id || Number.isNaN(id)) {
-      return Response.json({ error: 'Campo "id" obrigatório e numérico' }, { status: 400 });
+      return Response.json({ error: 'Campo "id" obrigatorio e numerico' }, { status: 400 });
     }
 
     const result = await pool.query("DELETE FROM camisas WHERE id = $1 RETURNING *", [id]);
 
     if (result.rowCount === 0) {
-      return Response.json({ error: "Camisa não encontrada" }, { status: 404 });
+      return Response.json({ error: "Camisa nao encontrada" }, { status: 404 });
     }
 
     return Response.json({ ok: true, deleted: result.rows[0] }, { status: 200 });
@@ -145,3 +157,4 @@ export async function DELETE(req: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
+

@@ -174,6 +174,14 @@ export default function BuscarPage() {
     return `${text.slice(0, max)}...`;
   }
 
+  function getStatusClass(status?: string) {
+    const normalized = (status || '').toLowerCase();
+
+    if (normalized === 'pendente') return styles.statusPendente;
+    if (normalized === 'enviado') return styles.statusEnviado;
+    return styles.statusDefault;
+  }
+
   return (
     <main className={`${fn.className} ${sharedStyles.page}`}>
       <aside className={sharedStyles.sidebar}>
@@ -339,15 +347,7 @@ export default function BuscarPage() {
                         <span className={styles.subText}>Usuário</span>
                       </td>
                       <td>
-                        <span
-                          className={`${styles.status} ${
-                            (o.status || '').toLowerCase() === 'pendente'
-                              ? styles.statusPendente
-                              : (o.status || '').toLowerCase() === 'enviado'
-                              ? styles.statusEnviado
-                              : styles.statusDefault
-                          }`}
-                        >
+                        <span className={`${styles.status} ${getStatusClass(o.status)}`}>
                           {o.status ?? '-'}
                         </span>
                       </td>
@@ -374,6 +374,58 @@ export default function BuscarPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className={styles.mobileList}>
+              {resultados.map((o) => (
+                <article key={`mobile-${o.id}`} className={styles.mobileCard}>
+                  <div className={styles.mobileCardHeader}>
+                    <div>
+                      <div className={styles.mobileIdRow}>
+                        <span className={styles.idCell}>{o.id}</span>
+                        <span className={`${styles.status} ${getStatusClass(o.status)}`}>
+                          {o.status ?? '-'}
+                        </span>
+                      </div>
+
+                      <strong className={styles.mobileCardTitle}>{o.nome ?? 'Sem nome'}</strong>
+                      <span className={styles.mobileCardSubtitle}>{o.usuario ?? 'Sem login'}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.mobileDataGrid}>
+                    <div className={styles.mobileDataItem}>
+                      <span className={styles.mobileDataLabel}>Rastreio</span>
+                      <strong>{o.rastreio || 'Sem codigo'}</strong>
+                    </div>
+
+                    <div className={styles.mobileDataItem}>
+                      <span className={styles.mobileDataLabel}>Usuario</span>
+                      <strong>{o.usuario || '-'}</strong>
+                    </div>
+                  </div>
+
+                  <div className={styles.mobileActions}>
+                    <Link
+                      href={`/camisas/${o.id}/editar`}
+                      className={styles.mobileActionBtn}
+                      title="Editar"
+                    >
+                      <FontAwesomeIcon icon={faEdit} />
+                      Editar
+                    </Link>
+
+                    <Link
+                      href={`/camisas/${o.id}/logs`}
+                      className={styles.mobileActionBtnSecondary}
+                      title="HistÃ³rico"
+                    >
+                      <FontAwesomeIcon icon={faClockRotateLeft} />
+                      Historico
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         )}

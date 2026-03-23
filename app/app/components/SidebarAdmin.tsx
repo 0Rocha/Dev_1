@@ -1,15 +1,17 @@
 "use client";
 
 import { Trade_Winds } from "next/font/google";
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBars,
   faLock,
   faPen,
   faRightFromBracket,
   faShirt,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   PROFILE_UPDATED_EVENT,
@@ -24,7 +26,8 @@ export default function SidebarAdmin({ className = "" }) {
   const pathname = usePathname() || "/";
   const router = useRouter();
 
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [open, setOpen] = useState<Record<string, boolean>>({ loja: true });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [usuarioLogado, setUsuarioLogado] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -77,6 +80,29 @@ export default function SidebarAdmin({ className = "" }) {
     };
   }, []);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
   const menuStructure = useMemo(
     () => [
       {
@@ -111,17 +137,17 @@ export default function SidebarAdmin({ className = "" }) {
     router.refresh();
   }
 
-  const toggle = (key: string) => setOpen((s) => ({ ...s, [key]: !s[key] }));
+  const toggle = (key: string) => setOpen((current) => ({ ...current, [key]: !current[key] }));
   const initials = (usuarioLogado || "admin").trim().slice(0, 2).toUpperCase();
 
-  return (
-    <aside className={`${styles.sidebar} ${className} ${tradeWinds.className}`}>
-      <div className={styles.brand}>
-        <div className={styles.brandName}>LUCI | LUCI</div>
-        <div className={styles.brandSub}></div>
-      </div>
+  function renderNavigationContent(mode: "desktop" | "mobile") {
+    const containerClassName =
+      mode === "mobile"
+        ? `${styles.container} ${styles.containerMobile}`
+        : styles.container;
 
-      <div className={styles.container}>
+    return (
+      <div className={containerClassName}>
         <nav role="navigation" aria-label="Sidebar de administracao">
           <button type="button" onClick={handleLogout} className={styles.menuItem}>
             <FontAwesomeIcon
@@ -136,8 +162,8 @@ export default function SidebarAdmin({ className = "" }) {
             <div key={section.id} className={styles.sectionBlock}>
               <h3 className={styles.sectionTitle}>{section.section}</h3>
 
-              {section.items.map((it) => {
-                if (!it.children) return null;
+              {section.items.map((item) => {
+                if (!item.children) return null;
 
                 const groupKey = section.section.toLowerCase().includes("cadastros")
                   ? "cadastros"
@@ -146,31 +172,31 @@ export default function SidebarAdmin({ className = "" }) {
                 const isOpen = open[groupKey];
 
                 return (
-                  <div key={it.id}>
+                  <div key={item.id}>
                     <button
                       type="button"
                       onClick={() => toggle(groupKey)}
                       className={`${styles.menuItem} ${styles.menuButton}`}
                       aria-expanded={isOpen}
-                      aria-controls={`${it.id}-submenu`}
+                      aria-controls={`${item.id}-submenu`}
                     >
                       <div className={styles.menuButtonLeft}>
-                        {it.icon && (
+                        {item.icon ? (
                           <FontAwesomeIcon
-                            icon={it.icon}
+                            icon={item.icon}
                             className={styles.menuItemIcon}
                             aria-hidden="true"
                           />
-                        )}
-                        <span>{it.label}</span>
+                        ) : null}
+                        <span>{item.label}</span>
                       </div>
 
                       <span className={styles.toggle}>{isOpen ? "v" : ">"}</span>
                     </button>
 
-                    {isOpen && (
-                      <div id={`${it.id}-submenu`} className={styles.submenu}>
-                        {it.children.map((child) => {
+                    {isOpen ? (
+                      <div id={`${item.id}-submenu`} className={styles.submenu}>
+                        {item.children.map((child) => {
                           const active = pathname === child.href;
 
                           return (
@@ -187,7 +213,7 @@ export default function SidebarAdmin({ className = "" }) {
                           );
                         })}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}
@@ -207,7 +233,7 @@ export default function SidebarAdmin({ className = "" }) {
             </div>
 
             <div className={styles.userText}>
-              <span className={styles.userGreeting}>Olá, </span>
+              <span className={styles.userGreeting}>OlÃ¡, </span>
               <strong>{usuarioLogado || "admin"}</strong>
             </div>
           </div>
@@ -247,6 +273,73 @@ export default function SidebarAdmin({ className = "" }) {
               Usuarios
             </Link>
           ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <aside className={`${styles.sidebar} ${className} ${tradeWinds.className}`}>
+      <div className={styles.desktopPane}>
+        <div className={styles.brand}>
+          <div className={styles.brandName}>LUCI | LUCI</div>
+          <div className={styles.brandSub}></div>
+        </div>
+
+        {renderNavigationContent("desktop")}
+      </div>
+
+      <div className={styles.mobilePane}>
+        <div className={styles.mobileBar}>
+          <div className={styles.mobileBrandBlock}>
+            <span className={styles.mobileBrandName}>LUCI | LUCI</span>
+            <span className={styles.mobileUserName}>{usuarioLogado || "admin"}</span>
+          </div>
+
+          <button
+            type="button"
+            className={styles.mobileMenuButton}
+            onClick={() => setMobileMenuOpen((current) => !current)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-sidebar-drawer"
+          >
+            <FontAwesomeIcon icon={mobileMenuOpen ? faXmark : faBars} aria-hidden="true" />
+            <span>{mobileMenuOpen ? "Fechar" : "Menu"}</span>
+          </button>
+        </div>
+
+        {mobileMenuOpen ? (
+          <button
+            type="button"
+            className={styles.mobileOverlay}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Fechar menu"
+          />
+        ) : null}
+
+        <div
+          id="mobile-sidebar-drawer"
+          className={`${styles.mobileDrawer} ${
+            mobileMenuOpen ? styles.mobileDrawerOpen : ""
+          }`}
+        >
+          <div className={styles.mobileDrawerHeader}>
+            <div>
+              <p className={styles.mobileDrawerEyebrow}>Navegacao</p>
+              <strong className={styles.mobileDrawerTitle}>Painel administrativo</strong>
+            </div>
+
+            <button
+              type="button"
+              className={styles.mobileCloseButton}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Fechar menu"
+            >
+              <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
+            </button>
+          </div>
+
+          {renderNavigationContent("mobile")}
         </div>
       </div>
     </aside>
